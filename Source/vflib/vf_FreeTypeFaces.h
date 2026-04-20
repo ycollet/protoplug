@@ -127,7 +127,7 @@
 
     @ingroup vf_gui
 */
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 class FreeTypeFaces
 {
 public:

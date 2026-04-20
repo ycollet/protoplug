@@ -1,5 +1,5 @@
 #pragma once
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 #include "LuaLink.h"
 
 
@@ -8,58 +8,79 @@ class ProtoWindow;
 class LuaProtoplugJuceAudioProcessor;
 class ProtoPopout;
 
-class LuaProtoplugJuceAudioProcessor  : public AudioProcessor
+//==============================================================================
+// Custom AudioProcessorParameter that mirrors the raw params[] double array
+// so that Lua scripts can read/write params[] directly while the host
+// still receives proper parameter notifications.
+class ProtoParam : public juce::AudioProcessorParameter
+{
+public:
+    ProtoParam (int idx, double* val)
+        : index (idx), value (val)
+    {}
+
+    float getValue() const override                         { return (float) *value; }
+    void  setValue (float v) override                       { *value = (double) v; }
+    float getDefaultValue() const override                  { return 0.5f; }
+    juce::String getName (int maxLen) const override        { return juce::String (index).substring (0, maxLen); }
+    juce::String getLabel() const override                  { return {}; }
+    float getValueForText (const juce::String& t) const override { return t.getFloatValue(); }
+
+private:
+    int     index;
+    double* value;
+};
+
+//==============================================================================
+class LuaProtoplugJuceAudioProcessor  : public juce::AudioProcessor,
+                                        private juce::AudioProcessorParameter::Listener
 {
 public:
     LuaProtoplugJuceAudioProcessor();
     ~LuaProtoplugJuceAudioProcessor();
 
-	// overrides
-    void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
-    AudioProcessorEditor* createEditor();
-    float getParameter (int index);
-    void setParameter (int index, float newValue);
-    const String getParameterName (int index);
-    const String getParameterText (int index);
-    double getTailLengthSeconds() const;
-    void getStateInformation (MemoryBlock& destData);
-    void setStateInformation (const void* data, int sizeInBytes);
+    // AudioProcessor overrides
+    void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
+    juce::AudioProcessorEditor* createEditor() override;
+    double getTailLengthSeconds() const override;
+    void getStateInformation (juce::MemoryBlock& destData) override;
+    void setStateInformation (const void* data, int sizeInBytes) override;
 
-	// some inlined overrides
-	const String getInputChannelName (int channelIndex) const	{ return String (channelIndex + 1); }
-	const String getOutputChannelName (int channelIndex) const	{ return String (channelIndex + 1); }
-	float getParameterDefaultValue (int /*parameterIndex*/)	{ return 0.5; }
-	bool isInputChannelStereoPair (int /*index*/) const		{ return true; }
-	bool isOutputChannelStereoPair (int /*index*/) const	{ return true; }
-	bool acceptsMidi() const								{ return true; }
-	bool producesMidi() const								{ return true; }
-	bool silenceInProducesSilenceOut() const				{ return false; }
-	const String getName() const							{ return JucePlugin_Name; }
-	int getNumParameters()									{ return NPARAMS; }
-	bool hasEditor() const									{ return true; }
-	// leave 1 as per JuceVSTWrapper constructor requirement:
-	int getNumPrograms()									{ return 1; }
-	int getCurrentProgram()									{ return 1; }
-	void setCurrentProgram (int /*index*/)					{ }
-	const String getProgramName (int /*index*/)				{ return String::empty; }
-	void changeProgramName (int /*index*/, const String& /*newName*/)	{ }
-	void prepareToPlay (double /*sampleRate*/, int /*samplesPerBlock*/)	{ }
-	void releaseResources()	{ }
+    // Inlined AudioProcessor overrides
+    bool acceptsMidi() const override                                                    { return true; }
+    bool producesMidi() const override                                                   { return true; }
+    const juce::String getName() const override                                          { return JucePlugin_Name; }
+    bool hasEditor() const override                                                      { return true; }
+    int  getNumPrograms() override                                                       { return 1; }
+    int  getCurrentProgram() override                                                    { return 0; }
+    void setCurrentProgram (int) override                                                {}
+    const juce::String getProgramName (int) override                                     { return {}; }
+    void changeProgramName (int, const juce::String&) override                           {}
+    void prepareToPlay (double, int) override                                            {}
+    void releaseResources() override                                                     {}
 
-	// some added methods
-	ProtoWindow *getProtoEditor();
-	void setProtoEditor(ProtoWindow * _ed);
-    bool parameterText2Double (int index, String text, double &d);
-	
-    int lastUIWidth, lastUIHeight, lastUISplit, lastUIPanel;
-	int lastPopoutX, lastPopoutY;
-	float lastUIFontSize;
-	bool popout, alwaysontop, liveMode;
-	LuaLink *luli;
-	double params[NPARAMS];
+    // Helpers for the GUI (not AudioProcessor overrides)
+    juce::String getParameterName (int index);
+    juce::String getParameterText (int index);
+    bool parameterText2Double (int index, juce::String text, double& d);
+
+    // Editor management
+    ProtoWindow* getProtoEditor();
+    void setProtoEditor (ProtoWindow* _ed);
+
+    int   lastUIWidth, lastUIHeight, lastUISplit, lastUIPanel;
+    int   lastPopoutX, lastPopoutY;
+    float lastUIFontSize;
+    bool  popout, alwaysontop, liveMode;
+    LuaLink* luli;
+    double params[NPARAMS];
 
 private:
+    // AudioProcessorParameter::Listener — called when the host changes a parameter
+    void parameterValueChanged (int parameterIndex, float newValue) override;
+    void parameterGestureChanged (int, bool) override {}
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LuaProtoplugJuceAudioProcessor)
-	ProtoWindow *lastOpenedEditor;
-	char *chunk;
+    ProtoWindow* lastOpenedEditor;
+    char* chunk;
 };

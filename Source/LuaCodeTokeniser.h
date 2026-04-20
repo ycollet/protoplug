@@ -3,7 +3,7 @@
 // Lua code tokeniser from Ctrlr project
 // http://ctrlr.org
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 
 class ProtoLuaTokeniser   : public CodeTokeniser
 {

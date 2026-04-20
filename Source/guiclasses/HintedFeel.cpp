@@ -1,7 +1,12 @@
 #include "HintedFeel.h"
 
 #if JUCE_WINDOWS
-#include "juce_core/native/juce_BasicNativeHeaders.h"
+// Windows API (HDC, CreateCompatibleDC, etc.) is available via JUCE module headers.
+// Include guard to avoid re-including windows.h with conflicting macros:
+#ifndef NOMINMAX
+ #define NOMINMAX
+#endif
+#include <windows.h>
 
 // adapted from Wouter Huysentruit's example
 bool GetFontDataFromSystem(String faceName_in, std::vector<char>& data_out)

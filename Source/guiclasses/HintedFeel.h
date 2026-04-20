@@ -32,12 +32,11 @@ public:
 	Typeface::Ptr getTypefaceForFont (Font const& font);
 	static FontDataMap faces;
 
-	Font getPopupMenuFont()
+	juce::Font getPopupMenuFont() override
 	{
-		return Font (15.0f);
+		return juce::Font (15.0f);
 	}
-	bool 	areScrollbarButtonsVisible () {return true;}
-	void drawTooltip (Graphics& g, const String& text, int width, int height)
+	void drawTooltip (juce::Graphics& g, const juce::String& text, int width, int height) override
 	{
 		// this is just a non-bold version of the parent
 		g.fillAll (findColour (TooltipWindow::backgroundColourId));
@@ -53,10 +52,10 @@ public:
 		tl.draw (g, juce::Rectangle<float> ((float) width, (float) height));
 	}
 
-	void getIdealPopupMenuItemSize (const String& text, bool isSeparator,
-									int standardMenuItemHeight, int& idealWidth, int& idealHeight)
+	void getIdealPopupMenuItemSize (const juce::String& text, bool isSeparator,
+									int standardMenuItemHeight, int& idealWidth, int& idealHeight) override
 	{
-		LookAndFeel_V2::getIdealPopupMenuItemSize(text, isSeparator, standardMenuItemHeight, idealWidth, idealHeight);
+		LookAndFeel_V3::getIdealPopupMenuItemSize (text, isSeparator, standardMenuItemHeight, idealWidth, idealHeight);
 		idealHeight += 4;
 	}
 };

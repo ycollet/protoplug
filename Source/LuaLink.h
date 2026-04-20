@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 #include "LuaState.h"
 
 class LuaProtoplugJuceAudioProcessor;
@@ -19,7 +19,7 @@ public:
 	void runStringInteractive(String toRun);
 
 	// Audio plugin overrides :
-	void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages, AudioPlayHead* ph);
+	void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, juce::AudioPlayHead* ph);
 	String getParameterName (int index);
 	String getParameterText (int index);
 	bool parameterText2Double (int index, String text, double &d);

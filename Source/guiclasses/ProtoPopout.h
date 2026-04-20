@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 #include "../PluginEditor.h"
 
 class ProtoPopout  :	public DocumentWindow

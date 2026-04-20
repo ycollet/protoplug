@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 #include "../LuaState.h"
 #include "../PluginProcessor.h"
 #include "../vflib/FreeTypeAmalgam.h"

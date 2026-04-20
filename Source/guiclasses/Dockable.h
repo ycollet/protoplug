@@ -1,121 +1,108 @@
 /*
   ==============================================================================
 
-    Dockable.h
-    Created: 13 Apr 2014 3:42:04pm
-    Author:  pac
+    Dockable.h — updated for JUCE 7/8
 
   ==============================================================================
 */
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 #include "../PluginProcessor.h"
 
 class Dockable;
 
-class DockablePopout  :	public DocumentWindow
+class DockablePopout : public juce::DocumentWindow
 {
 public:
-	DockablePopout (	Dockable *_dad,
-					const String& name,
-                    Colour backgroundColour,
+    DockablePopout (Dockable* _dad,
+                    const juce::String& name,
+                    juce::Colour backgroundColour,
                     int requiredButtons,
                     bool addToDesktop = true)
-		:DocumentWindow(name, backgroundColour, requiredButtons, addToDesktop)
-	{ dad = _dad; }
+        : juce::DocumentWindow (name, backgroundColour, requiredButtons, addToDesktop)
+    { dad = _dad; }
 
-	void closeButtonPressed();
+    void closeButtonPressed() override;
+
 private:
-	Dockable *dad;
+    Dockable* dad;
 };
 
 
-class Dockable : public Component
+class Dockable : public juce::Component
 {
 public:
-	Dockable(Component *_content, String _name, LuaProtoplugJuceAudioProcessor* _processor)
-	{
-		content = _content;
-		name = _name;
-		processor = _processor;
-		addAndMakeVisible(content);
-	}
+    Dockable (juce::Component* _content, juce::String _name, LuaProtoplugJuceAudioProcessor* _processor)
+    {
+        content   = _content;
+        name      = _name;
+        processor = _processor;
+        addAndMakeVisible (content);
+    }
 
-	void paint (Graphics& g)
-	{
-		g.fillAll (Colours::white);
-		if (docwin==0) return;
-		g.fillAll();
-		g.setColour(Colours::grey);
-		g.drawText(name + " window popped out !", g.getClipBounds(), Justification::centred, false);
-	}
+    void paint (juce::Graphics& g) override
+    {
+        g.fillAll (juce::Colours::white);
+        if (! docwin) return;
+        g.fillAll();
+        g.setColour (juce::Colours::grey);
+        g.drawText (name + " window popped out !", g.getClipBounds(), juce::Justification::centred, false);
+    }
 
-	void resized()
-	{
-		if (docwin==0)
-			content->setBounds(0, 0, getWidth(), getHeight());
-	}
+    void resized() override
+    {
+        if (! docwin)
+            content->setBounds (0, 0, getWidth(), getHeight());
+    }
 
-	void handleCommandMessage(int com)
-	{
-		if (com==1 && docwin==0)
-			popOut();
-		else if (com==1 && docwin!=0)
-			popIn();
-	}
+    void handleCommandMessage (int com) override
+    {
+        if (com == 1 && ! docwin)
+            popOut();
+        else if (com == 1 && docwin)
+            popIn();
+    }
 
-	void popOut()
-	{
-		docwin = new DockablePopout(this, name, Colours::white, DocumentWindow::allButtons, true);
-		docwin->setAlwaysOnTop(processor->alwaysontop);
-		docwin->setResizable(true, false);
-		docwin->setUsingNativeTitleBar(true);
-		docwin->setContentNonOwned(content, true);
-		//processor->popout = true;
-		//docwin->setContentComponentSize(processor->lastUIWidth, processor->lastUIHeight);
-		docwin->setTopLeftPosition(processor->lastPopoutX, processor->lastPopoutY);
-		//content.setPoppedOut(true);
-		docwin->setVisible(true);
-		//setSize (280, 130);
-		//yank.setVisible(true);
-		//popin.setVisible(true);
-		//content.takeFocus();
-		resized();
-	}
+    void popOut()
+    {
+        docwin = std::make_unique<DockablePopout> (this, name, juce::Colours::white,
+                                                   juce::DocumentWindow::allButtons, true);
+        docwin->setAlwaysOnTop (processor->alwaysontop);
+        docwin->setResizable (true, false);
+        docwin->setUsingNativeTitleBar (true);
+        docwin->setContentNonOwned (content, true);
+        docwin->setTopLeftPosition (processor->lastPopoutX, processor->lastPopoutY);
+        docwin->setVisible (true);
+        resized();
+    }
 
-	void popIn()
-	{
-		//processor->popout = false;
-		//int w=processor->lastUIWidth, h=processor->lastUIHeight;
-		addAndMakeVisible(content);
-		//content.setPoppedOut(false);
-		//setSize (w,h);
-		content->setSize (getWidth(), getHeight());
-		docwin = 0;
-		//yank.setVisible(false);
-		//content.takeFocus();
-		//popin.setVisible(false);
-		resized();
-	}
-	void setAlwaysOnTop(bool aot)
-	{
-		if (docwin==0) return;
-		docwin->setAlwaysOnTop(aot);
-	}
-	bool isPoppedOut()
-	{
-		return (docwin!=0);
-	}
-	void bringWindowToFront()
-	{
-		if (docwin==0) return;
-		docwin->toFront(true);
-	}
+    void popIn()
+    {
+        addAndMakeVisible (content);
+        content->setSize (getWidth(), getHeight());
+        docwin.reset();
+        resized();
+    }
+
+    void setAlwaysOnTop (bool aot)
+    {
+        if (docwin)
+            docwin->setAlwaysOnTop (aot);
+    }
+
+    bool isPoppedOut()    { return docwin != nullptr; }
+
+    void bringWindowToFront()
+    {
+        if (docwin)
+            docwin->toFront (true);
+    }
+
 private:
-	Component *content;
-	ScopedPointer<DockablePopout> docwin;
-	String name;
-	LuaProtoplugJuceAudioProcessor *processor;
+    juce::Component*                        content;
+    std::unique_ptr<DockablePopout>         docwin;
+    juce::String                            name;
+    LuaProtoplugJuceAudioProcessor*         processor;
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 
 #ifdef _PROTOGEN
 #define SCRIPTS_DIR "generators"

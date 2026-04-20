@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 #include "../LuaCodeTokeniser.h"
 #include "HintedFeel.h"
 #include "DarkSplitter.h"

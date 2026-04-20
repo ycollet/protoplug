@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 #include "../LuaLink.h"
 
 class CustomGuiPanel	:	public Component, public KeyListener

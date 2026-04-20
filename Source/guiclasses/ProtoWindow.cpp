@@ -66,7 +66,7 @@ ProtoWindow::ProtoWindow (Component *parent, LuaProtoplugJuceAudioProcessor* own
     horizontalLayout.setItemLayout (0,		-0.1,	-1.0,	processor->lastUISplit-20);		// top (code editor)
     horizontalLayout.setItemLayout (1,		8,		8,		8);										// mid (splitter)
     horizontalLayout.setItemLayout (2,		22,		-0.9,	processor->lastUIHeight-processor->lastUISplit);	// bottom (log)
-    horizontalDividerBar = new DarkSplitter (&horizontalLayout, 1, false);
+    horizontalDividerBar = std::make_unique<DarkSplitter> (&horizontalLayout, 1, false);
     addAndMakeVisible (horizontalDividerBar);
 
     addAndMakeVisible (&tab1);
@@ -108,11 +108,11 @@ void ProtoWindow::readTheme(File f)
 	if (!f.exists())
 		return;
 	editor.setFont(Font(Font::getDefaultMonospacedFontName(), 14, 0));
-	ScopedPointer<XmlElement> root (XmlDocument(f).getDocumentElement());
+	auto root = juce::XmlDocument::parse (f);
 	if (!root)
 		return;
-    CodeEditorComponent::ColourScheme cs = tok.getDefaultColourScheme();
-	StringArray sa = Font::findAllTypefaceNames();
+    juce::CodeEditorComponent::ColourScheme cs = tok.getDefaultColourScheme();
+	juce::StringArray sa = juce::Font::findAllTypefaceNames();
 #if JUCE_WINDOWS
 	// todo: why isn't it working on OSX ?
 	for (unsigned int i = 0; i < sizeof (protoFonts) / sizeof (protoFonts[0]); ++i)
@@ -127,7 +127,7 @@ void ProtoWindow::readTheme(File f)
 	String s;
 	Colour c;
 	
-	forEachXmlChildElement (*root, e)
+	for (auto* e : *root)
 	{
 		if (e->hasTagName ("color"))
 		{
@@ -181,14 +181,12 @@ void ProtoWindow::readPrefs()
 	File f = ProtoplugDir::Instance()->getDir().getChildFile("prefs.xml");
 	if (!f.exists())
 		return;
-	XmlElement *e = XmlDocument(f).getDocumentElement();
-	if (e) {
-		commMgr.getKeyMappings()->restoreFromXml(*e);
-		delete e;
-	}
+	auto e = juce::XmlDocument::parse (f);
+	if (e)
+		commMgr.getKeyMappings()->restoreFromXml (*e);
 	/*	// writePrefs()
 	XmlElement *e = commMgr.getKeyMappings()->createXml(false);
-	e->writeToFile(ProtoplugDir::Instance()->getDir().getChildFile("prefs.xml"), String::empty);
+	e->writeToFile(ProtoplugDir::Instance()->getDir().getChildFile("prefs.xml"), {});
 	delete e;*/
 }
 
