@@ -1,0 +1,158 @@
+cmake_minimum_required(VERSION 3.22)
+
+project(protoplug VERSION 1.4.0)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# ============================================================
+# Fetch JUCE via FetchContent
+# ============================================================
+include(FetchContent)
+
+FetchContent_Declare(
+    JUCE
+    GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
+    GIT_TAG        8.0.4          # update to a newer tag as needed
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(JUCE)
+
+# ============================================================
+# Shared source list (used by both plugins)
+# ============================================================
+set(PROTOPLUG_SOURCES
+    Source/LuaCodeTokeniser.cpp
+    Source/LuaCodeTokeniser.h
+    Source/LuaLink.cpp
+    Source/LuaLink.h
+    Source/LuaState.cpp
+    Source/LuaState.h
+    Source/PluginEditor.cpp
+    Source/PluginEditor.h
+    Source/PluginProcessor.cpp
+    Source/PluginProcessor.h
+    Source/ProtoplugDir.cpp
+    Source/ProtoplugDir.h
+    Source/ProtoplugExports.h
+    Source/guiclasses/AboutBox.h
+    Source/guiclasses/BottomPane.cpp
+    Source/guiclasses/BottomPane.h
+    Source/guiclasses/CustomGuiPanel.cpp
+    Source/guiclasses/CustomGuiPanel.h
+    Source/guiclasses/DarkSplitter.h
+    Source/guiclasses/Dockable.cpp
+    Source/guiclasses/Dockable.h
+    Source/guiclasses/HintedFeel.cpp
+    Source/guiclasses/HintedFeel.h
+    Source/guiclasses/LuaEditor.h
+    Source/guiclasses/ParameterPanel.h
+    Source/guiclasses/ProtoPopout.h
+    Source/guiclasses/ProtoTabButton.h
+    Source/guiclasses/ProtoWindow.cpp
+    Source/guiclasses/ProtoWindow.h
+    Source/vflib/BinaryDejaVu.cpp
+    Source/vflib/BinaryDejaVu.h
+    Source/vflib/BinarySourceCodePro.cpp
+    Source/vflib/BinarySourceCodePro.h
+    Source/vflib/FreeTypeAmalgam.c
+    Source/vflib/FreeTypeAmalgam.h
+    Source/vflib/vf_FreeTypeFaces.cpp
+    Source/vflib/vf_FreeTypeFaces.h
+)
+
+# FreeTypeAmalgam.c is plain C — compile it as C, not as C++.
+set_source_files_properties(
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/vflib/FreeTypeAmalgam.c
+    PROPERTIES LANGUAGE C
+)
+
+# ============================================================
+# Helper function — applies common settings to both plugins
+# ============================================================
+function(configure_protoplug_plugin target is_synth)
+
+    target_compile_features(${target} PRIVATE cxx_std_17)
+
+    # Source/ is added so that:
+    #   #include <JuceHeader.h>   finds Source/JuceHeader.h
+    #   #include "JuceHeader.h"   (from Source/exports/) also finds it
+    # Source/exports/ is added for the Lua export headers.
+    target_include_directories(${target}
+        PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/Source
+            ${CMAKE_CURRENT_SOURCE_DIR}/Source/exports
+    )
+
+    target_compile_definitions(${target}
+        PUBLIC
+            # Allow the synchronous FileChooser / modal-loop API used in the editor.
+            JUCE_MODAL_LOOPS_PERMITTED=1
+            # Suppress the JUCE splash screen (requires a commercial licence or
+            # an open-source project — adjust as appropriate).
+            JUCE_DISPLAY_SPLASH_SCREEN=0
+            # Disable unused JUCE features to speed up the build.
+            JUCE_WEB_BROWSER=0
+            JUCE_USE_CURL=0
+        PRIVATE
+            # _PROTOGEN=1 distinguishes the instrument plugin from the effect.
+            $<$<BOOL:${is_synth}>:_PROTOGEN=1>
+    )
+
+    # juce_audio_utils transitively pulls in juce_audio_basics,
+    # juce_audio_devices, juce_audio_formats, juce_audio_processors,
+    # juce_data_structures, juce_events, juce_graphics, juce_gui_basics,
+    # juce_gui_extra, and juce_core.
+    target_link_libraries(${target}
+        PRIVATE
+            juce::juce_audio_utils
+        PUBLIC
+            juce::juce_recommended_config_flags
+            juce::juce_recommended_warning_flags
+    )
+
+endfunction()
+
+# ============================================================
+# Lua Protoplug Fx  (audio effect plugin)
+# ============================================================
+juce_add_plugin(protoplug_fx
+    COMPANY_NAME                "osar.fr"
+    PLUGIN_MANUFACTURER_CODE    "_PAC"
+    PLUGIN_CODE                 "ppgf"
+    FORMATS                     VST3 AU
+    PRODUCT_NAME                "Lua Protoplug Fx"
+    DESCRIPTION                 "Lua Protoplug Effect"
+    IS_SYNTH                    FALSE
+    NEEDS_MIDI_INPUT            TRUE
+    NEEDS_MIDI_OUTPUT           TRUE
+    IS_MIDI_EFFECT              FALSE
+    EDITOR_WANTS_KEYBOARD_FOCUS TRUE
+    BUNDLE_ID                   "com.pac.protoplugfx"
+    VST3_CATEGORIES             "Fx"
+)
+
+target_sources(protoplug_fx PRIVATE ${PROTOPLUG_SOURCES})
+configure_protoplug_plugin(protoplug_fx FALSE)
+
+# ============================================================
+# Lua Protoplug Gen  (instrument / synthesiser plugin)
+# ============================================================
+juce_add_plugin(protoplug_gen
+    COMPANY_NAME                "osar.fr"
+    PLUGIN_MANUFACTURER_CODE    "_PAC"
+    PLUGIN_CODE                 "ppgg"
+    FORMATS                     VST3 AU
+    PRODUCT_NAME                "Lua Protoplug Gen"
+    DESCRIPTION                 "Lua Protoplug Instrument"
+    IS_SYNTH                    TRUE
+    NEEDS_MIDI_INPUT            TRUE
+    NEEDS_MIDI_OUTPUT           TRUE
+    IS_MIDI_EFFECT              FALSE
+    EDITOR_WANTS_KEYBOARD_FOCUS TRUE
+    BUNDLE_ID                   "com.pac.protopluggen"
+    VST3_CATEGORIES             "Instrument|Synth"
+)
+
+target_sources(protoplug_gen PRIVATE ${PROTOPLUG_SOURCES})
+configure_protoplug_plugin(protoplug_gen TRUE)
