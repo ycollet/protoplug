@@ -6,6 +6,16 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ============================================================
+# Find system Lua 5.4
+# ------------------------------------------------------------
+# On Fedora: sudo dnf install lua5.4-devel   (or just "lua-devel"
+#            if Lua 5.4 is the default version)
+# On Debian/Ubuntu: sudo apt install liblua5.4-dev
+# On macOS (Homebrew): brew install lua
+# ============================================================
+find_package(Lua 5.4 REQUIRED)
+
+# ============================================================
 # Fetch JUCE via FetchContent
 # ============================================================
 include(FetchContent)
@@ -98,6 +108,10 @@ function(configure_protoplug_plugin target is_synth)
             # _PROTOGEN=1 distinguishes the instrument plugin from the effect.
             $<$<BOOL:${is_synth}>:_PROTOGEN=1>
     )
+
+    # Lua 5.4 — found by find_package(Lua 5.4 REQUIRED) above.
+    target_include_directories(${target} PRIVATE ${LUA_INCLUDE_DIR})
+    target_link_libraries(${target} PRIVATE ${LUA_LIBRARIES})
 
     # juce_audio_utils transitively pulls in juce_audio_basics,
     # juce_audio_devices, juce_audio_formats, juce_audio_processors,

@@ -14,7 +14,9 @@ public:
 		protolua::LuaState ls(ProtoplugDir::Instance()->getLibDir());
 		if (!ls.failed) {
 			ls.openlibs();
-			const char versionScript[] = "return (_VERSION..'\\n'..jit.version)";
+			// jit.version is LuaJIT-specific; fall back gracefully for standard Lua 5.4.
+		const char versionScript[] =
+			"return _VERSION .. '\\n' .. (jit and jit.version or 'standard Lua')";
 			ls.loadbuffer(versionScript, strlen(versionScript), "vs");
 			ls.pcall(0, 1, 0);
 		}
