@@ -6,6 +6,16 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ============================================================
+# Build-format options
+# ------------------------------------------------------------
+# Enable additional plugin formats at configure time:
+#   cmake -B build -DPLUGIN_USE_LV2=ON
+#   cmake -B build -DPLUGIN_USE_CLAP=ON
+# ============================================================
+option(PLUGIN_USE_LV2  "Build LV2 plugin format"  OFF)
+option(PLUGIN_USE_CLAP "Build CLAP plugin format" OFF)
+
+# ============================================================
 # Find system Lua 5.4
 # ------------------------------------------------------------
 # On Fedora: sudo dnf install lua5.4-devel   (or just "lua-devel"
@@ -27,6 +37,29 @@ FetchContent_Declare(
     GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(JUCE)
+
+# ============================================================
+# Optionally fetch clap-juce-extensions (CLAP support)
+# ============================================================
+if(PLUGIN_USE_CLAP)
+    FetchContent_Declare(
+        clap-juce-extensions
+        GIT_REPOSITORY https://github.com/free-audio/clap-juce-extensions.git
+        GIT_TAG        main
+        GIT_SHALLOW    TRUE
+    )
+    FetchContent_MakeAvailable(clap-juce-extensions)
+endif()
+
+# ============================================================
+# Plugin format list — always VST3 + AU; LV2/CLAP are opt-in
+# Note: JUCE silently drops AU on non-Apple platforms.
+# CLAP is handled separately via clap_juce_extensions_plugin().
+# ============================================================
+set(PROTOPLUG_FORMATS VST3 AU)
+if(PLUGIN_USE_LV2)
+    list(APPEND PROTOPLUG_FORMATS LV2)
+endif()
 
 # ============================================================
 # Shared source list (used by both plugins)
@@ -134,7 +167,7 @@ juce_add_plugin(protoplug_fx
     COMPANY_NAME                "osar.fr"
     PLUGIN_MANUFACTURER_CODE    "_PAC"
     PLUGIN_CODE                 "ppgf"
-    FORMATS                     VST3 AU
+    FORMATS                     ${PROTOPLUG_FORMATS}
     PRODUCT_NAME                "Lua Protoplug Fx"
     DESCRIPTION                 "Lua Protoplug Effect"
     IS_SYNTH                    FALSE
@@ -144,10 +177,17 @@ juce_add_plugin(protoplug_fx
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     BUNDLE_ID                   "com.pac.protoplugfx"
     VST3_CATEGORIES             "Fx"
+    LV2_URI                     "https://osar.fr/protoplug/fx"
 )
 
 target_sources(protoplug_fx PRIVATE ${PROTOPLUG_SOURCES})
 configure_protoplug_plugin(protoplug_fx FALSE)
+
+if(PLUGIN_USE_CLAP)
+    clap_juce_extensions_plugin(TARGET protoplug_fx
+        CLAP_ID       "fr.osar.protoplugfx"
+        CLAP_FEATURES audio-effect)
+endif()
 
 # ============================================================
 # Lua Protoplug Gen  (instrument / synthesiser plugin)
@@ -156,7 +196,7 @@ juce_add_plugin(protoplug_gen
     COMPANY_NAME                "osar.fr"
     PLUGIN_MANUFACTURER_CODE    "_PAC"
     PLUGIN_CODE                 "ppgg"
-    FORMATS                     VST3 AU
+    FORMATS                     ${PROTOPLUG_FORMATS}
     PRODUCT_NAME                "Lua Protoplug Gen"
     DESCRIPTION                 "Lua Protoplug Instrument"
     IS_SYNTH                    TRUE
@@ -166,7 +206,14 @@ juce_add_plugin(protoplug_gen
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     BUNDLE_ID                   "com.pac.protopluggen"
     VST3_CATEGORIES             "Instrument|Synth"
+    LV2_URI                     "https://osar.fr/protoplug/gen"
 )
 
 target_sources(protoplug_gen PRIVATE ${PROTOPLUG_SOURCES})
 configure_protoplug_plugin(protoplug_gen TRUE)
+
+if(PLUGIN_USE_CLAP)
+    clap_juce_extensions_plugin(TARGET protoplug_gen
+        CLAP_ID       "fr.osar.protopluggen"
+        CLAP_FEATURES instrument synthesizer)
+endif()
