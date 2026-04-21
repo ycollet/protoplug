@@ -21,7 +21,14 @@ option(PLUGIN_USE_CLAP "Build CLAP plugin format" OFF)
 # On Fedora: sudo dnf install lua5.4-devel   (or just "lua-devel"
 #            if Lua 5.4 is the default version)
 # On Debian/Ubuntu: sudo apt install liblua5.4-dev
-# On macOS (Homebrew): brew install lua
+# On macOS (Homebrew): brew install lua@5.4
+#   NOTE: lua@5.4 is keg-only; pass explicit paths at configure time:
+#     cmake -B build \
+#       -DLUA_INCLUDE_DIR=$(brew --prefix lua@5.4)/include/lua5.4 \
+#       -DLUA_LIBRARY=$(brew --prefix lua@5.4)/lib/liblua.a \
+#       -DLUA_LIBRARIES=$(brew --prefix lua@5.4)/lib/liblua.a
+#   If a newer Lua (e.g. 5.5) is also installed, cmake's find_package
+#   may pick it up instead; the explicit -D flags above prevent that.
 # ============================================================
 find_package(Lua 5.4 REQUIRED)
 

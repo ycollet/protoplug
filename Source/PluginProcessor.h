@@ -60,8 +60,8 @@ public:
     void releaseResources() override                                                     {}
 
     // Helpers for the GUI (not AudioProcessor overrides)
-    juce::String getParameterName (int index);
-    juce::String getParameterText (int index);
+    const juce::String getParameterName (int index);
+    const juce::String getParameterText (int index);
     bool parameterText2Double (int index, juce::String text, double& d);
 
     // Editor management

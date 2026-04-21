@@ -59,14 +59,14 @@ void LuaProtoplugJuceAudioProcessor::parameterValueChanged (int parameterIndex, 
 }
 
 //==============================================================================
-juce::String LuaProtoplugJuceAudioProcessor::getParameterName (int index)
+const juce::String LuaProtoplugJuceAudioProcessor::getParameterName (int index)
 {
     if (index >= NPARAMS)
         return {};
     return luli->getParameterName (index);
 }
 
-juce::String LuaProtoplugJuceAudioProcessor::getParameterText (int index)
+const juce::String LuaProtoplugJuceAudioProcessor::getParameterText (int index)
 {
     if (index >= NPARAMS)
         return {};

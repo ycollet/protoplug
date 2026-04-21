@@ -67,7 +67,7 @@ ProtoWindow::ProtoWindow (Component *parent, LuaProtoplugJuceAudioProcessor* own
     horizontalLayout.setItemLayout (1,		8,		8,		8);										// mid (splitter)
     horizontalLayout.setItemLayout (2,		22,		-0.9,	processor->lastUIHeight-processor->lastUISplit);	// bottom (log)
     horizontalDividerBar = std::make_unique<DarkSplitter> (&horizontalLayout, 1, false);
-    addAndMakeVisible (horizontalDividerBar);
+    addAndMakeVisible (horizontalDividerBar.get());
 
     addAndMakeVisible (&tab1);
     addAndMakeVisible (&tab2);
@@ -127,7 +127,7 @@ void ProtoWindow::readTheme(File f)
 	String s;
 	Colour c;
 	
-	for (auto* e : *root)
+	for (auto* e = root->getFirstChildElement(); e != nullptr; e = e->getNextElement())
 	{
 		if (e->hasTagName ("color"))
 		{
@@ -207,7 +207,7 @@ void ProtoWindow::resized()
 {
 	int menuHeight = 20;
 	
-    Component* hcomps[] = { activePanelComponent, horizontalDividerBar, &bottomPane };
+    Component* hcomps[] = { activePanelComponent, horizontalDividerBar.get(), &bottomPane };
     horizontalLayout.layOutComponents (hcomps, 3,
                                         0, menuHeight, getWidth(), getHeight() - menuHeight,
                                         true,      // lay out on top of each other
