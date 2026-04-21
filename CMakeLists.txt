@@ -175,7 +175,7 @@ juce_add_plugin(protoplug_fx
     PLUGIN_MANUFACTURER_CODE    "_PAC"
     PLUGIN_CODE                 "ppgf"
     FORMATS                     ${PROTOPLUG_FORMATS}
-    PRODUCT_NAME                "Lua Protoplug Fx"
+    PRODUCT_NAME                "Lua_Protoplug_Fx"
     DESCRIPTION                 "Lua Protoplug Effect"
     IS_SYNTH                    FALSE
     NEEDS_MIDI_INPUT            TRUE
@@ -204,7 +204,7 @@ juce_add_plugin(protoplug_gen
     PLUGIN_MANUFACTURER_CODE    "_PAC"
     PLUGIN_CODE                 "ppgg"
     FORMATS                     ${PROTOPLUG_FORMATS}
-    PRODUCT_NAME                "Lua Protoplug Gen"
+    PRODUCT_NAME                "Lua_Protoplug_Gen"
     DESCRIPTION                 "Lua Protoplug Instrument"
     IS_SYNTH                    TRUE
     NEEDS_MIDI_INPUT            TRUE
