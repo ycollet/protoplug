@@ -9,6 +9,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "ProtoplugDir.h"
+#include <cstring>
 
 
 //==============================================================================
@@ -110,60 +111,98 @@ void LuaProtoplugJuceAudioProcessor::getStateInformation (juce::MemoryBlock& des
     // if lua save() is overridden, call it and store the script's custom data
     luli->saveData = luli->save();
 
-    int sz_script = luli->code.length() * 2;
-    int sz_user   = luli->saveData.length() * 2;
-    int sz_total  = 3 * 4 + 8 * NPARAMS + sz_script + sz_user + 8;
+    // Use exact UTF-8 byte lengths (NOT juce::String::length(), which counts
+    // Unicode characters, not bytes) so that non-ASCII code/save-data content
+    // cannot overflow the buffer below.
+    auto  codeUtf8   = luli->code.toUTF8();
+    auto  userUtf8   = luli->saveData.toUTF8();
+    size_t sz_script = (size_t) luli->code.getNumBytesAsUTF8();
+    size_t sz_user   = (size_t) luli->saveData.getNumBytesAsUTF8();
+    size_t sz_total  = 3 * sizeof (int) + (size_t) NPARAMS * sizeof (double) + sz_script + sz_user;
 
     delete[] chunk;
     chunk = new char[sz_total];
 
-    int*   pi = (int*) chunk;
-    *pi++ = NPARAMS;                                        // store number of parameters
-    double* pd = (double*) pi;
+    char* pc = chunk;
+    int   numParams = NPARAMS;
+    memcpy (pc, &numParams, sizeof (int));                  // store number of parameters
+    pc += sizeof (int);
     for (int i = 0; i < NPARAMS; i++)
-        *pd++ = params[i];                                  // store param values
-    pi = (int*) pd;
-    *pi++ = sz_script;                                      // store size of code
-    char* pc = (char*) pi;
-    strcpy (pc, luli->code.getCharPointer());               // store code
+    {
+        memcpy (pc, &params[i], sizeof (double));           // store param values
+        pc += sizeof (double);
+    }
+
+    int sz_script_i = (int) sz_script;
+    memcpy (pc, &sz_script_i, sizeof (int));                // store size of code
+    pc += sizeof (int);
+    memcpy (pc, codeUtf8.getAddress(), sz_script);           // store code (exact byte count, no NUL)
     pc += sz_script;
-    pi = (int*) pc;
-    *pi++ = sz_user;                                        // store size of lua saveable string
-    pc = (char*) pi;
-    strcpy (pc, luli->saveData.getCharPointer());           // store lua saveable string
+
+    int sz_user_i = (int) sz_user;
+    memcpy (pc, &sz_user_i, sizeof (int));                  // store size of lua saveable string
+    pc += sizeof (int);
+    memcpy (pc, userUtf8.getAddress(), sz_user);             // store lua saveable string
+    pc += sz_user;
 
     destData.append (chunk, sz_total);
 }
 
-void LuaProtoplugJuceAudioProcessor::setStateInformation (const void* data, int /*sizeInBytes*/)
+void LuaProtoplugJuceAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    const int* pi = (const int*) data;
-    int numparams  = *pi++;                                 // get number of parameters
-    const double* pd = (const double*) pi;
+    // The host-supplied state blob is untrusted input (it may come from a
+    // shared project/preset file), so every embedded length must be checked
+    // against the actual buffer bounds before it is used to index or read.
+    if (data == nullptr || sizeInBytes <= 0)
+        return;
+
+    const char* p   = (const char*) data;
+    const char* end = p + (size_t) sizeInBytes;
+    auto remaining  = [&] { return (size_t) (end - p); };
+
+    if (remaining() < sizeof (int))
+        return;
+    int numparams;
+    memcpy (&numparams, p, sizeof (int));                   // get number of parameters
+    p += sizeof (int);
+    if (numparams < 0 || remaining() < (size_t) numparams * sizeof (double))
+        return;
+
     for (int i = 0; i < numparams; i++)
     {
+        double v;
+        memcpy (&v, p, sizeof (double));
+        p += sizeof (double);
         if (i < NPARAMS)
-            params[i] = *pd++;
-        else
-            ++pd;
+            params[i] = v;
     }
-    pi = (const int*) pd;
-    int sz_script  = *pi++;                                 // get size of code
-    const char* pc = (const char*) pi;
-    luli->code     = pc;                                    // get code
+
+    if (remaining() < sizeof (int))
+        return;
+    int sz_script;
+    memcpy (&sz_script, p, sizeof (int));                   // get size of code
+    p += sizeof (int);
+    if (sz_script < 0 || remaining() < (size_t) sz_script)
+        return;
+
+    luli->code = juce::String::fromUTF8 (p, sz_script);     // get code (length-bounded, not NUL-terminated read)
+    p += sz_script;
     luli->saveData = {};
     if (ProtoplugDir::Instance()->found)
         luli->compile();
     else
         luli->addToLog ("could not compile script because the ProtoplugFiles directory is missing or incomplete");
 
-    pc += sz_script;
-    pi  = (const int*) pc;
-    int sz_user = *pi++;                                    // get size of lua saveable string
-    pc = (const char*) pi;
+    if (remaining() < sizeof (int))
+        return;
+    int sz_user;
+    memcpy (&sz_user, p, sizeof (int));                     // get size of lua saveable string
+    p += sizeof (int);
     if (sz_user > 0)
     {
-        luli->saveData = pc;                                // get lua saveable string
+        if (remaining() < (size_t) sz_user)
+            return;
+        luli->saveData = juce::String::fromUTF8 (p, sz_user); // get lua saveable string (length-bounded)
         luli->load (luli->saveData);
     }
 }
