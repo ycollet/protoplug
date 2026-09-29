@@ -38,7 +38,9 @@ static int LuaWriteLine (protolua::lua_State *L) {
 static int LuaSetParam (protolua::lua_State *L) {
 	LuaLink *luli = globalStates[L];
 	if (!luli) return 0;
-	luli->pfx->setParameterNotifyingHost((int)luli->ls->tonumber(1), (float)luli->ls->tonumber(2));
+	// AudioProcessor::setParameterNotifyingHost() was removed in JUCE 9; use the
+	// per-parameter API instead (see ProtoParam in PluginProcessor.h).
+	luli->pfx->getParameters()[(int)luli->ls->tonumber(1)]->setValueNotifyingHost((float)luli->ls->tonumber(2));
 	return 0;
 }
 

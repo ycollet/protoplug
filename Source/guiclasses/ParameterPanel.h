@@ -77,7 +77,10 @@ public:
         for (int i = 0; i < NPARAMS; i++)
             if (sliders[i].get() == sliderThatWasMoved)
             {
-                processor->beginParameterChangeGesture (i);
+                // AudioProcessor::beginParameterChangeGesture()/endParameterChangeGesture()/
+                // setParameterNotifyingHost() were removed in JUCE 9 (deprecated since long
+                // before); the gesture/value notification now lives on the parameter itself.
+                processor->getParameters()[i]->beginChangeGesture();
                 break;
             }
     }
@@ -87,7 +90,7 @@ public:
         for (int i = 0; i < NPARAMS; i++)
             if (sliders[i].get() == sliderThatWasMoved)
             {
-                processor->endParameterChangeGesture (i);
+                processor->getParameters()[i]->endChangeGesture();
                 break;
             }
     }
@@ -97,7 +100,7 @@ public:
         for (int i = 0; i < NPARAMS; i++)
             if (sliders[i].get() == sliderThatWasMoved)
             {
-                processor->setParameterNotifyingHost (i, (float) sliderThatWasMoved->getValue());
+                processor->getParameters()[i]->setValueNotifyingHost ((float) sliderThatWasMoved->getValue());
                 sliders[i]->updateText();
                 break;
             }

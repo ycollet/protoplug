@@ -27,7 +27,7 @@ You'll need Visual Studio 2017 (Windows) or a recent XCode (macOS). Projects fil
 
 For example, on Ubuntu 16:
 
-	sudo apt-get install libluajit-5.1-2 libfftw3-3 build-essential pkg-config libgtk-3-dev libfreetype6-dev libx11-dev libasound2-dev libxinerama-dev libxcursor-dev libcurl4-openssl-dev
+	sudo apt-get install libluajit-5.1-2 libfftw3-3 build-essential pkg-config libgtk-3-dev libfreetype6-dev libx11-dev libasound2-dev libxinerama-dev libxcursor-dev libxi-dev libcurl4-openssl-dev
 	tar zxf protoplug-1.4.0.tar.gz
 	cd protoplug-1.4.0/Builds/multi/Linux/
 	make CONFIG=Release

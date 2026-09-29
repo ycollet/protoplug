@@ -40,7 +40,7 @@ include(FetchContent)
 FetchContent_Declare(
     JUCE
     GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-    GIT_TAG        8.0.4          # update to a newer tag as needed
+    GIT_TAG        9.0.3          # update to a newer tag as needed
     GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(JUCE)
@@ -144,6 +144,10 @@ function(configure_protoplug_plugin target is_synth)
             # Disable unused JUCE features to speed up the build.
             JUCE_WEB_BROWSER=0
             JUCE_USE_CURL=0
+            # This build never produces a VST2 binary, so there is no VST2
+            # automation compatibility to preserve; disable VST3's "replace
+            # VST2" parameter-ID mode (JUCE 9 otherwise refuses to build).
+            JUCE_VST3_CAN_REPLACE_VST2=0
         PRIVATE
             # _PROTOGEN=1 distinguishes the instrument plugin from the effect.
             $<$<BOOL:${is_synth}>:_PROTOGEN=1>
