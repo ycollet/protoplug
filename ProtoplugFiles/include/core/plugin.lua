@@ -78,7 +78,12 @@ script.addHandler("init", function ()
 			end
 			samples = ffi.typeof("float**")(samples)
 			midiBuf = ffi.typeof("pMidiBuffer")(midiBuf)
-			plugin.playHead = ffi.typeof("pAudioPlayHead")(playHead)
+			-- playHead may be a non-null lightuserdata wrapping a NULL C++
+			-- pointer (host provides no playhead); wrap it, but only keep
+			-- it if the underlying pointer is non-NULL, so callers can
+			-- reliably use `if not plugin.playHead then ... end`.
+			local ph = ffi.typeof("pAudioPlayHead")(playHead)
+			plugin.playHead = (ph.pointer ~= nil) and ph or nil
 			plugin.processBlock(samples, nSamples-1, midiBuf)
 			plugin.playHead = nil
 		end

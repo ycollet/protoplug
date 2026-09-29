@@ -41,6 +41,9 @@ PROTO_API     bool AudioPlayHead_getCurrentPosition(pAudioPlayHead self, AudioPl
     // CurrentPositionInfo cdef) is built around the legacy struct layout,
     // so translate getPosition()'s result into it here instead of relying
     // on JUCE's own (deprecated) conversion helper.
+    if (self.a == nullptr)
+        return false;
+
     const auto pos = self.a->getPosition();
     if (! pos.hasValue())
         return false;

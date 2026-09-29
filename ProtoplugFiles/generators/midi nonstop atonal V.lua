@@ -45,7 +45,8 @@ end
 
 function updateInterval()
 	local int = params[1].getValue()
-	bpm = plugin.getCurrentPosition().bpm
+	local pos = plugin.getCurrentPosition()
+	bpm = pos and pos.bpm or 120 -- fall back to 120bpm if host provides no position info
 	interval = math.floor((plugin.getSampleRate()*int)/(bpm))
 end
 
