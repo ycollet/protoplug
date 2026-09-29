@@ -184,10 +184,6 @@ void ProtoWindow::readPrefs()
 	auto e = juce::XmlDocument::parse (f);
 	if (e)
 		commMgr.getKeyMappings()->restoreFromXml (*e);
-	/*	// writePrefs()
-	XmlElement *e = commMgr.getKeyMappings()->createXml(false);
-	e->writeToFile(ProtoplugDir::Instance()->getDir().getChildFile("prefs.xml"), {});
-	delete e;*/
 }
 
 ProtoWindow::~ProtoWindow()
@@ -613,11 +609,6 @@ void ProtoWindow::setActivePanel(int p)
 	resized();
 	bottomPane.scrollLog();
 	processor->lastUIPanel = activePanel;
-}
-
-int ProtoWindow::getActivePanel()
-{
-	return activePanel;
 }
 
 void ProtoWindow::setPoppedOut(bool popped)

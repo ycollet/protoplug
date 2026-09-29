@@ -57,7 +57,6 @@ public:
     void saveCode();
     void compile();
     void setActivePanel (int p);
-    int  getActivePanel();
     void setPoppedOut (bool popped);
     void takeFocus();
     void readPrefs();

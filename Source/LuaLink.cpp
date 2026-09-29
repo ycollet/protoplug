@@ -348,20 +348,6 @@ String LuaLink::callStringOverride(const char *fname, ...)
 	return safetostring();
 }
 
-bool LuaLink::callBoolOverride(const char *fname, ...)
-{
-	const GenericScopedLock<CriticalSection> lok(cs);
-    va_list args;
-    va_start(args, fname);
-	int numArgs = startVarargOverride(fname, args);
-    va_end(args);
-	if (numArgs<0)
-		return false; // state or function does not exist
-	if (safepcall (fname, numArgs, 1, 0))
-		return false; // function crashed
-	return safetobool();
-}
-
 bool LuaLink::safetobool()
 {
 	if (!ls->isboolean(-1)) {

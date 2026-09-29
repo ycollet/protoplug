@@ -47,5 +47,4 @@ private:
 	TooltipWindow tooltip; // is this used?
 
 	TextEditor input;
-	//TextButton runButton; // meh, at this point your hand is over the enter key
 };

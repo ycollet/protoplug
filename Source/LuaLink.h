@@ -73,7 +73,6 @@ private:
 	*/
 	bool callVoidOverrideRT(const char *fname, ...);
 	String callStringOverride(const char *fname, ...);
-	bool callBoolOverride(const char *fname, ...);
 	bool safetobool();
 	String safetostring();
     void mouseOverride (const char *fname, const MouseEvent& event);
