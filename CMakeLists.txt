@@ -16,6 +16,18 @@ option(PLUGIN_USE_LV2  "Build LV2 plugin format"  OFF)
 option(PLUGIN_USE_CLAP "Build CLAP plugin format" OFF)
 
 # ============================================================
+# Linux system-wide ProtoplugFiles install directory
+# ------------------------------------------------------------
+# On Linux, ProtoplugDir.cpp looks for the scripts/examples/docs directory
+# at this fixed path (see the packaging recipe / install step that copies
+# ProtoplugFiles/ there). Override at configure time if your distro/package
+# uses a different location:
+#   cmake -B build -DPROTOPLUG_LINUX_SHARE_DIR=/usr/local/share/protoplug
+# ============================================================
+set(PROTOPLUG_LINUX_SHARE_DIR "/usr/share/protoplug" CACHE STRING
+    "Path to the system-wide ProtoplugFiles directory used on Linux")
+
+# ============================================================
 # Find LuaJIT
 # ------------------------------------------------------------
 # protoplug's scripting layer (ProtoplugFiles/include/core/*.lua) relies on
@@ -153,6 +165,8 @@ function(configure_protoplug_plugin target is_synth)
         PRIVATE
             # _PROTOGEN=1 distinguishes the instrument plugin from the effect.
             $<$<BOOL:${is_synth}>:_PROTOGEN=1>
+            # System-wide ProtoplugFiles location used by ProtoplugDir.cpp on Linux.
+            PROTOPLUG_LINUX_SHARE_DIR="${PROTOPLUG_LINUX_SHARE_DIR}"
     )
 
     # LuaJIT — found by pkg_check_modules(LuaJIT ...) above.

@@ -15,7 +15,11 @@ ProtoplugDir::ProtoplugDir()
 		//pluginLocation = pluginLocation.getSiblingFile("../../../");
 	#endif
 	#if JUCE_LINUX
-		dir = File("/usr/share/ProtoplugFiles");
+		#ifdef PROTOPLUG_LINUX_SHARE_DIR
+			dir = File(PROTOPLUG_LINUX_SHARE_DIR);
+		#else
+			dir = File("/usr/share/protoplug");
+		#endif
 	#endif
 	if (dir.exists())
 		return;
