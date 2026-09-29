@@ -16,21 +16,23 @@ option(PLUGIN_USE_LV2  "Build LV2 plugin format"  OFF)
 option(PLUGIN_USE_CLAP "Build CLAP plugin format" OFF)
 
 # ============================================================
-# Find system Lua 5.4
+# Find LuaJIT
 # ------------------------------------------------------------
-# On Fedora: sudo dnf install lua5.4-devel   (or just "lua-devel"
-#            if Lua 5.4 is the default version)
-# On Debian/Ubuntu: sudo apt install liblua5.4-dev
-# On macOS (Homebrew): brew install lua@5.4
-#   NOTE: lua@5.4 is keg-only; pass explicit paths at configure time:
-#     cmake -B build \
-#       -DLUA_INCLUDE_DIR=$(brew --prefix lua@5.4)/include/lua5.4 \
-#       -DLUA_LIBRARY=$(brew --prefix lua@5.4)/lib/liblua.a \
-#       -DLUA_LIBRARIES=$(brew --prefix lua@5.4)/lib/liblua.a
-#   If a newer Lua (e.g. 5.5) is also installed, cmake's find_package
-#   may pick it up instead; the explicit -D flags above prevent that.
+# protoplug's scripting layer (ProtoplugFiles/include/core/*.lua) relies on
+# LuaJIT's `ffi` library for fast buffer/struct access from Lua scripts, and
+# on LuaJIT's JIT compiler for realtime DSP performance — plain PUC-Lua
+# cannot run these scripts (no `ffi` library) and would in any case be much
+# slower for numeric code, so LuaJIT is required, not just "a" Lua 5.1.
+#
+# On Fedora: sudo dnf install luajit-devel
+# On Debian/Ubuntu: sudo apt install libluajit-5.1-dev
+# On macOS (Homebrew): brew install luajit
+#
+# LuaJIT is located via its pkg-config file (module name "luajit"), which is
+# installed by all of the packages above.
 # ============================================================
-find_package(Lua 5.4 REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LuaJIT REQUIRED IMPORTED_TARGET luajit)
 
 # ============================================================
 # Fetch JUCE via FetchContent
@@ -153,9 +155,8 @@ function(configure_protoplug_plugin target is_synth)
             $<$<BOOL:${is_synth}>:_PROTOGEN=1>
     )
 
-    # Lua 5.4 — found by find_package(Lua 5.4 REQUIRED) above.
-    target_include_directories(${target} PRIVATE ${LUA_INCLUDE_DIR})
-    target_link_libraries(${target} PRIVATE ${LUA_LIBRARIES})
+    # LuaJIT — found by pkg_check_modules(LuaJIT ...) above.
+    target_link_libraries(${target} PRIVATE PkgConfig::LuaJIT)
 
     # juce_audio_utils transitively pulls in juce_audio_basics,
     # juce_audio_devices, juce_audio_formats, juce_audio_processors,

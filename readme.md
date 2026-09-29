@@ -23,10 +23,11 @@ There are [prebuilt binaries](https://github.com/pac-dev/protoplug/releases), bu
 
 - CMake 3.22 or newer
 - A C++17 compiler (Visual Studio 2019+ on Windows, a recent Xcode on macOS, GCC/Clang on Linux)
-- System **Lua 5.4** development files (not LuaJIT):
-  - Fedora: `sudo dnf install lua5.4-devel`
-  - Debian/Ubuntu: `sudo apt install liblua5.4-dev`
-  - macOS (Homebrew): `brew install lua@5.4` (keg-only — see note below)
+- pkg-config
+- **LuaJIT** development files (protoplug's scripting layer relies on LuaJIT's `ffi` library and JIT compiler for realtime DSP performance — plain Lua will not work):
+  - Fedora: `sudo dnf install luajit-devel`
+  - Debian/Ubuntu: `sudo apt install libluajit-5.1-dev`
+  - macOS (Homebrew): `brew install luajit`
 
 **Linux :** also install the JUCE GUI/audio dependencies, for example on Ubuntu:
 
@@ -38,12 +39,7 @@ There are [prebuilt binaries](https://github.com/pac-dev/protoplug/releases), bu
 	cmake -B build
 	cmake --build build --config Release
 
-On macOS, since Homebrew's `lua@5.4` is keg-only, pass explicit paths at configure time:
-
-	cmake -B build \
-		-DLUA_INCLUDE_DIR=$(brew --prefix lua@5.4)/include/lua5.4 \
-		-DLUA_LIBRARY=$(brew --prefix lua@5.4)/lib/liblua.a \
-		-DLUA_LIBRARIES=$(brew --prefix lua@5.4)/lib/liblua.a
+LuaJIT is located automatically via pkg-config; no extra configure flags are normally needed.
 
 By default, protoplug builds VST3 and AU (macOS only). Additional formats can be enabled at configure time:
 

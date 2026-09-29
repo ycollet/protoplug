@@ -2,17 +2,21 @@
 
 #include <JuceHeader.h>
 
-// Include the system Lua 5.4 headers.  These are found via the Lua include
-// directory added by find_package(Lua) in CMakeLists.txt.
+// Include the LuaJIT headers (found via pkg_check_modules(LuaJIT ...) /
+// PkgConfig::LuaJIT in CMakeLists.txt). protoplug's Lua glue layer
+// (ProtoplugFiles/include/core/*.lua) requires LuaJIT specifically: it uses
+// the `ffi` library for buffer/struct access on every processBlock call, and
+// relies on the JIT compiler for realtime DSP performance. Plain PUC-Lua has
+// no `ffi` library at all, so scripts would fail to even load against it.
 extern "C" {
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
 }
 
-// Sanity check: refuse to compile against Lua < 5.4.
-#if LUA_VERSION_NUM < 504
- #error "protoplug requires Lua 5.4 or later.  Please install lua5.4-devel (Fedora) or equivalent."
+// Sanity check: LuaJIT identifies itself as Lua 5.1-API-compatible.
+#if LUA_VERSION_NUM != 501
+ #error "protoplug requires LuaJIT (which reports Lua 5.1 API compatibility). Please install luajit-devel/libluajit-5.1-dev/luajit (Homebrew) instead."
 #endif
 
 namespace protolua
