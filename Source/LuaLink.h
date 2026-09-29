@@ -64,6 +64,14 @@ private:
 		defined in luastate.h) Last argument must be 0.
 	*/
 	bool callVoidOverride(const char *fname, ...);
+
+	/** Same as callVoidOverride(), but never blocks: used from the audio
+		thread (processBlock), which must not stall waiting for the message
+		thread to release the Lua lock (e.g. during script recompilation).
+		Returns false (skipping this call) if the lock isn't immediately
+		available, in addition to the usual "function not defined" case.
+	*/
+	bool callVoidOverrideRT(const char *fname, ...);
 	String callStringOverride(const char *fname, ...);
 	bool callBoolOverride(const char *fname, ...);
 	bool safetobool();

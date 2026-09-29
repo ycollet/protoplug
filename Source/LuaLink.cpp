@@ -313,6 +313,27 @@ bool LuaLink::callVoidOverride(const char *fname, ...)
 	return true;
 }
 
+bool LuaLink::callVoidOverrideRT(const char *fname, ...)
+{
+	// Realtime-safe variant, used from the audio thread (processBlock): the
+	// message thread can hold cs for an unbounded time (e.g. while running
+	// the user script's script_saveData() during compile(), or handling a
+	// slow GUI callback), so the audio thread must never block waiting for
+	// it. If the lock isn't immediately available, skip this block's Lua
+	// call instead of stalling the audio callback.
+	const GenericScopedTryLock<CriticalSection> lok(cs);
+	if (!lok.isLocked())
+		return false;
+    va_list args;
+    va_start(args, fname);
+	int numArgs = startVarargOverride(fname, args);
+    va_end(args);
+	if (numArgs<0)
+		return false; // state or function does not exist
+	safepcall (fname, numArgs, 0, 0);
+	return true;
+}
+
 String LuaLink::callStringOverride(const char *fname, ...)
 {
 	const GenericScopedLock<CriticalSection> lok(cs);
@@ -394,7 +415,7 @@ double LuaLink::getTailLengthSeconds()
 
 void LuaLink::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, juce::AudioPlayHead* ph)
 {
-	bool res = callVoidOverride("plugin_processBlock"	, LUA_TNUMBER, (double)buffer.getNumSamples(),
+	bool res = callVoidOverrideRT("plugin_processBlock"	, LUA_TNUMBER, (double)buffer.getNumSamples(),
 									LUA_TLIGHTUSERDATA, buffer.getArrayOfReadPointers(),
 									LUA_TLIGHTUSERDATA, &midiMessages,
 									LUA_TLIGHTUSERDATA, ph,
