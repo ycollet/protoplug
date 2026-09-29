@@ -17,19 +17,37 @@ Protoplug is a VST/AU plugin that lets you load and edit Lua scripts as audio ef
 
 Compiling from Source
 ---------------------
-There are [prebuilt binaries](https://github.com/pac-dev/protoplug/releases), but building it from source is also simple:
+There are [prebuilt binaries](https://github.com/pac-dev/protoplug/releases), but building it from source is also simple. protoplug is built with **CMake** (3.22+); JUCE is fetched automatically at configure time via `FetchContent`, so you don't need to download it yourself.
 
-**Mac and Windows :** 
+**Prerequisites (all platforms) :**
 
-You'll need Visual Studio 2017 (Windows) or a recent XCode (macOS). Projects files are in the `Builds` folder.
+- CMake 3.22 or newer
+- A C++17 compiler (Visual Studio 2019+ on Windows, a recent Xcode on macOS, GCC/Clang on Linux)
+- System **Lua 5.4** development files (not LuaJIT):
+  - Fedora: `sudo dnf install lua5.4-devel`
+  - Debian/Ubuntu: `sudo apt install liblua5.4-dev`
+  - macOS (Homebrew): `brew install lua@5.4` (keg-only — see note below)
 
-**Linux :** 
+**Linux :** also install the JUCE GUI/audio dependencies, for example on Ubuntu:
 
-For example, on Ubuntu 16:
+	sudo apt-get install build-essential pkg-config libfftw3-dev libgtk-3-dev libfreetype6-dev \
+		libx11-dev libasound2-dev libxinerama-dev libxcursor-dev libxi-dev libcurl4-openssl-dev
 
-	sudo apt-get install libluajit-5.1-2 libfftw3-3 build-essential pkg-config libgtk-3-dev libfreetype6-dev libx11-dev libasound2-dev libxinerama-dev libxcursor-dev libxi-dev libcurl4-openssl-dev
-	tar zxf protoplug-1.4.0.tar.gz
-	cd protoplug-1.4.0/Builds/multi/Linux/
-	make CONFIG=Release
+**Building (all platforms) :**
 
-Then, optionally run `sudo make install` or just copy the binaries from `protoplug-1.4.0/Bin/linux` to wherever you want them.
+	cmake -B build
+	cmake --build build --config Release
+
+On macOS, since Homebrew's `lua@5.4` is keg-only, pass explicit paths at configure time:
+
+	cmake -B build \
+		-DLUA_INCLUDE_DIR=$(brew --prefix lua@5.4)/include/lua5.4 \
+		-DLUA_LIBRARY=$(brew --prefix lua@5.4)/lib/liblua.a \
+		-DLUA_LIBRARIES=$(brew --prefix lua@5.4)/lib/liblua.a
+
+By default, protoplug builds VST3 and AU (macOS only). Additional formats can be enabled at configure time:
+
+	cmake -B build -DPLUGIN_USE_LV2=ON    # build the LV2 format
+	cmake -B build -DPLUGIN_USE_CLAP=ON   # build the CLAP format
+
+Built plugins are placed under `build/protoplug_fx_artefacts` and `build/protoplug_gen_artefacts` (one subfolder per format). Copy the binaries to your system's plugin folder, or run the platform's standard CMake install step if you prefer.
