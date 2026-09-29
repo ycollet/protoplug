@@ -13,7 +13,7 @@ BottomPane::BottomPane (ProtoWindow *_protoWin):
 	log.setMultiLine(true);
 	log.setReadOnly(true);
 	log.setCaretVisible(false);
-	log.setFont(Font(Font::getDefaultMonospacedFontName(), 12, 0));
+	log.setFont(Font(FontOptions(Font::getDefaultMonospacedFontName(), 12, 0)));
 	log.setColour(TextEditor::backgroundColourId, Colour(0xffe0e0e0));
 
 	// Compile button
@@ -24,7 +24,7 @@ BottomPane::BottomPane (ProtoWindow *_protoWin):
 	
 	// Input area
 	addChildComponent(&input);
-	input.setFont(Font(Font::getDefaultMonospacedFontName(), 12, 0));
+	input.setFont(Font(FontOptions(Font::getDefaultMonospacedFontName(), 12, 0)));
 	input.setColour(TextEditor::backgroundColourId, Colours::transparentWhite);
 	input.setIndents(16, 4);
 	input.addListener(this);
@@ -32,7 +32,7 @@ BottomPane::BottomPane (ProtoWindow *_protoWin):
 	// Prompt label
     addAndMakeVisible (&prompt);
 	prompt.setTarget(&input);
-	prompt.setFont(Font(Font::getDefaultMonospacedFontName(), 14, Font::bold));
+	prompt.setFont(Font(FontOptions(Font::getDefaultMonospacedFontName(), 14, Font::bold)));
 	prompt.setColour(Label::textColourId, Colours::red);
 	prompt.setText(">", dontSendNotification);
 }
@@ -79,7 +79,7 @@ void BottomPane::updateLog()
 	log.moveCaretToStartOfLine(false);
 }
 
-void BottomPane::textEditorReturnKeyPressed (TextEditor &t)
+void BottomPane::textEditorReturnKeyPressed ([[maybe_unused]] TextEditor &t)
 {
 	protoWin->processor->luli->runStringInteractive(input.getText());
 	input.clear();

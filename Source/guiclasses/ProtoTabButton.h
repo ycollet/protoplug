@@ -29,9 +29,9 @@ public:
         virtual void tabButtonClicked (ProtoTabButton*) = 0;
         virtual void tabButtonDoubleClicked (ProtoTabButton*) = 0;
     };
-	void clicked ()
+	void clicked () override
 	{ if (listener) listener->tabButtonClicked(this); }
-	void mouseDoubleClick (const MouseEvent &)
+	void mouseDoubleClick (const MouseEvent &) override
 	{ if (listener) listener->tabButtonDoubleClicked(this); }
     void setListener (Listener* newListener)
 	{ listener = newListener; }

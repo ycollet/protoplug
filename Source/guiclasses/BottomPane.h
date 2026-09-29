@@ -14,12 +14,12 @@
 class ProtoWindow;
 
 // isn't this what labels are supposed to be?
-class LabelOfOtherComponent : public Label, public MouseListener
+class LabelOfOtherComponent : public Label
 {
 public:
-	LabelOfOtherComponent() { tgt = 0; }
+	LabelOfOtherComponent() { tgt = nullptr; }
 	void setTarget(Component *_tgt) { tgt = _tgt; }
-	void mouseUp (const MouseEvent &event) { if (tgt) tgt->grabKeyboardFocus(); }
+	void mouseUp ([[maybe_unused]] const MouseEvent &event) override { if (tgt) tgt->grabKeyboardFocus(); }
 private:
 	Component *tgt;
 };

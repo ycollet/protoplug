@@ -28,7 +28,7 @@ private:
 
 	// i still consider singletons an anti-pattern, but here you go...
 	ProtoplugDir();
-	ProtoplugDir(ProtoplugDir const&){};
-	ProtoplugDir& operator=(ProtoplugDir const&){};
+	ProtoplugDir(ProtoplugDir const&) = delete;
+	ProtoplugDir& operator=(ProtoplugDir const&) = delete;
 	static ProtoplugDir* pInstance;
 };

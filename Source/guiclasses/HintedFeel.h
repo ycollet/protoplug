@@ -28,13 +28,13 @@ class HintedFeel : public LookAndFeel_V3
 {
 public:
 	HintedFeel()	{ }
-	~HintedFeel();
-	Typeface::Ptr getTypefaceForFont (Font const& font);
+	~HintedFeel() override;
+	Typeface::Ptr getTypefaceForFont (Font const& font) override;
 	static FontDataMap faces;
 
 	juce::Font getPopupMenuFont() override
 	{
-		return juce::Font (15.0f);
+		return juce::Font (juce::FontOptions (15.0f));
 	}
 	void drawTooltip (juce::Graphics& g, const juce::String& text, int width, int height) override
 	{
@@ -46,7 +46,7 @@ public:
 		#endif
         AttributedString s;
         s.setJustification (Justification::centred);
-        s.append (text, Font (13.0f), findColour (TooltipWindow::textColourId));
+        s.append (text, Font (juce::FontOptions (13.0f)), findColour (TooltipWindow::textColourId));
         TextLayout tl;
         tl.createLayoutWithBalancedLineLengths (s, (float) 400);
 		tl.draw (g, juce::Rectangle<float> ((float) width, (float) height));

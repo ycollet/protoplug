@@ -9,7 +9,7 @@ class LuaProtoplugJuceAudioProcessorEditor  : public juce::AudioProcessorEditor,
 {
 public:
     LuaProtoplugJuceAudioProcessorEditor (LuaProtoplugJuceAudioProcessor* ownerFilter);
-    ~LuaProtoplugJuceAudioProcessorEditor();
+    ~LuaProtoplugJuceAudioProcessorEditor() override;
 
     void paint (juce::Graphics& g) override;
     void resized() override;
@@ -18,7 +18,7 @@ public:
 
     void popOut();
     void popIn();
-    LuaProtoplugJuceAudioProcessor* processor;
+    LuaProtoplugJuceAudioProcessor* luaProcessor;
 
 private:
     ProtoWindow content; // the actual gui is in there

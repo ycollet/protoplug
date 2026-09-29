@@ -387,7 +387,7 @@ PROTO_API bool Path_isUsingNonZeroWinding(pPath self)
 
 PROTO_API void Path_toString(pPath self, char* dest, int bufSize)
 {
-	self.p->toString().copyToUTF8(dest, bufSize);
+	self.p->toString().copyToUTF8(dest, (size_t)bufSize);
 }
 
 PROTO_API void Path_restoreFromString (pPath self, const char *src)

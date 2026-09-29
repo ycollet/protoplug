@@ -46,10 +46,10 @@ static int LuaSetParam (protolua::lua_State *L) {
 
 LuaLink::LuaLink(LuaProtoplugJuceAudioProcessor *_pfx)
 {
-	ls = 0;
+	ls = nullptr;
 	guiThreadRunning = workable = iLuaLoaded = 0;
 	pfx = _pfx;
-	customGui = 0;
+	customGui = nullptr;
 	
 	libFolder = ProtoplugDir::Instance()->getScriptsDir().getFullPathName();
 	code = File(libFolder).getChildFile("default.lua").loadFileAsString();
@@ -103,14 +103,14 @@ void LuaLink::compile() {
 		preClose();
 		globalStates.erase(ls->l);
 		delete ls;
-		ls=0;
+		ls = nullptr;
 	}
 
 	ls = new protolua::LuaState(ProtoplugDir::Instance()->getLibDir());
 	if (ls->failed) {
 		addToLog(ls->errmsg);
 		delete ls;
-		ls=0;
+		ls = nullptr;
 		return;
 	}
 	ls->openlibs();
@@ -137,7 +137,7 @@ void LuaLink::compile() {
 	String addPath = ProtoplugDir::Instance()->getDir().getFullPathName();
 	ls->getglobal( "package" );
 	ls->getfield(-1, "path" );
-	String newpack, pack = ls->tolstring(-1,0 );
+	String newpack, pack = ls->tolstring(-1, nullptr);
 	newpack << addPath << "/?.lua;" << pack;
 	ls->pop(1 );
 	ls->pushstring( newpack.getCharPointer().getAddress());
@@ -145,10 +145,10 @@ void LuaLink::compile() {
 	ls->pop( 1 );
 
 	// compile
-	int error = ls->loadbuffer(code.getCharPointer().getAddress(), code.length(), "Lua Script");
+	int error = ls->loadbuffer(code.getCharPointer().getAddress(), (size_t)code.length(), "Lua Script");
 	if (error)
 	{
-		addToLog(ls->tolstring(-1,0));
+		addToLog(ls->tolstring(-1, nullptr));
 		return;
 	}
 
@@ -162,7 +162,7 @@ void LuaLink::compile() {
 		addToLog(ls->tostring(-1));
 		globalStates.erase(ls->l);
 		delete ls;   // Cya, Lua
-		ls=0;
+		ls = nullptr;
 		return;
 	}
 
@@ -174,7 +174,7 @@ void LuaLink::compile() {
 			addToLog(String("error calling script_init() : ")+ls->tostring(-1));
 			globalStates.erase(ls->l);
 			delete ls;   // Cya, Lua
-			ls=0;
+			ls = nullptr;
 			return;
 		}
 	} else
@@ -200,7 +200,7 @@ bool LuaLink::runString(String toRun) {
 		// the rest still works, right?
 		/*globalStates.erase(ls->l);
 		delete ls;   // Cya, Lua
-		ls=0;
+		ls = nullptr;
 		return;*/
 	}
 	return true;
@@ -265,11 +265,11 @@ int LuaLink::startVarargOverride(const char *fname, va_list _args)
 		return -1;
 	int numArgs = 0;
 	int type = 0;
-	while (type = va_arg(_args, int)) {
+	while ((type = va_arg(_args, int))) {
 		numArgs++;
 		switch (type) {
 		case LUA_TBOOLEAN:
-			ls->pushboolean(va_arg(_args, bool));
+			ls->pushboolean(va_arg(_args, int) != 0);
 			break;
 		case LUA_TLIGHTUSERDATA:
 			ls->pushlightuserdata(va_arg(_args, void*));
@@ -295,7 +295,7 @@ int LuaLink::safepcall(const char *fname, int nargs, int nresults, int errfunc)
 		workable = 0;
 		globalStates.erase(ls->l);
 		delete ls;   // Cya, Lua
-		ls=0;
+		ls = nullptr;
 	}
 	return result;
 }
@@ -401,7 +401,7 @@ double LuaLink::getTailLengthSeconds()
 		workable = 0;
 		globalStates.erase(ls->l);
 		delete ls;   // Cya, Lua
-		ls=0;
+		ls = nullptr;
 		return 0.0;
 	}
 	if (!ls->isnumber(-1)) {
@@ -415,7 +415,7 @@ double LuaLink::getTailLengthSeconds()
 
 void LuaLink::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, juce::AudioPlayHead* ph)
 {
-	bool res = callVoidOverrideRT("plugin_processBlock"	, LUA_TNUMBER, (double)buffer.getNumSamples(),
+	[[maybe_unused]] bool res = callVoidOverrideRT("plugin_processBlock"	, LUA_TNUMBER, (double)buffer.getNumSamples(),
 									LUA_TLIGHTUSERDATA, buffer.getArrayOfReadPointers(),
 									LUA_TLIGHTUSERDATA, &midiMessages,
 									LUA_TLIGHTUSERDATA, ph,

@@ -10,7 +10,7 @@ class ProtoLuaTokeniser   : public CodeTokeniser
 public:
     //==============================================================================
     ProtoLuaTokeniser();
-    ~ProtoLuaTokeniser();
+    ~ProtoLuaTokeniser() override;
 
     //==============================================================================
     int readNextToken (CodeDocument::Iterator&) override;

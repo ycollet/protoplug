@@ -24,7 +24,7 @@ LuaProtoplugJuceAudioProcessorEditor::LuaProtoplugJuceAudioProcessorEditor (LuaP
       popin ("pop back in"),
       locateFiles ("locate directory...")
 {
-    processor = ownerFilter;
+    luaProcessor = ownerFilter;
     ownerFilter->setProtoEditor (&content);
     addChildComponent (&yank);
     addChildComponent (&popin);
@@ -44,7 +44,7 @@ LuaProtoplugJuceAudioProcessorEditor::LuaProtoplugJuceAudioProcessorEditor (LuaP
         setSize (380, 130);
         locateFiles.setVisible (true);
     }
-    else if (processor->popout)
+    else if (luaProcessor->popout)
     {
         content.initProtoplugDir();
         content.setSize (ownerFilter->lastUIWidth, ownerFilter->lastUIHeight);
@@ -66,8 +66,8 @@ LuaProtoplugJuceAudioProcessorEditor::~LuaProtoplugJuceAudioProcessorEditor()
 {
     if (poppedWin != nullptr)
     {
-        processor->lastPopoutX = poppedWin->getX();
-        processor->lastPopoutY = poppedWin->getY();
+        luaProcessor->lastPopoutX = poppedWin->getX();
+        luaProcessor->lastPopoutY = poppedWin->getY();
     }
     content.saveCode();
 }
@@ -126,7 +126,7 @@ void LuaProtoplugJuceAudioProcessorEditor::buttonClicked (juce::Button* b)
                 if (ProtoplugDir::Instance()->getDirTextFile().create().wasOk())
                     ProtoplugDir::Instance()->getDirTextFile().replaceWithText (chosen.getFullPathName());
                 setSize (670, 455);
-                processor->luli->initProtoplugDir();
+                luaProcessor->luli->initProtoplugDir();
                 locateFiles.setVisible (false);
                 addAndMakeVisible (&content);
                 content.takeFocus();
@@ -144,15 +144,15 @@ void LuaProtoplugJuceAudioProcessorEditor::buttonClicked (juce::Button* b)
 
 void LuaProtoplugJuceAudioProcessorEditor::popOut()
 {
-    poppedWin = std::make_unique<ProtoPopout> (this, processor->getName(), juce::Colours::white,
+    poppedWin = std::make_unique<ProtoPopout> (this, luaProcessor->getName(), juce::Colours::white,
                                                juce::DocumentWindow::allButtons, true);
-    poppedWin->setAlwaysOnTop (processor->alwaysontop);
+    poppedWin->setAlwaysOnTop (luaProcessor->alwaysontop);
     poppedWin->setResizable (true, false);
     poppedWin->setUsingNativeTitleBar (true);
     poppedWin->setContentNonOwned (&content, true);
-    processor->popout = true;
-    poppedWin->setContentComponentSize (processor->lastUIWidth, processor->lastUIHeight);
-    poppedWin->setTopLeftPosition (processor->lastPopoutX, processor->lastPopoutY);
+    luaProcessor->popout = true;
+    poppedWin->setContentComponentSize (luaProcessor->lastUIWidth, luaProcessor->lastUIHeight);
+    poppedWin->setTopLeftPosition (luaProcessor->lastPopoutX, luaProcessor->lastPopoutY);
     content.setPoppedOut (true);
     poppedWin->setVisible (true);
     setSize (280, 130);
@@ -163,15 +163,15 @@ void LuaProtoplugJuceAudioProcessorEditor::popOut()
 
 void LuaProtoplugJuceAudioProcessorEditor::popIn()
 {
-    processor->lastUIWidth  = 670;
-    processor->lastUIHeight = 455;
+    luaProcessor->lastUIWidth  = 670;
+    luaProcessor->lastUIHeight = 455;
     if (poppedWin != nullptr)
     {
-        processor->lastPopoutX = poppedWin->getX();
-        processor->lastPopoutY = poppedWin->getY();
+        luaProcessor->lastPopoutX = poppedWin->getX();
+        luaProcessor->lastPopoutY = poppedWin->getY();
     }
-    processor->popout = false;
-    int w = processor->lastUIWidth, h = processor->lastUIHeight;
+    luaProcessor->popout = false;
+    int w = luaProcessor->lastUIWidth, h = luaProcessor->lastUIHeight;
     addAndMakeVisible (&content);
     content.setPoppedOut (false);
     setSize (w, h);
@@ -184,18 +184,18 @@ void LuaProtoplugJuceAudioProcessorEditor::popIn()
 
 void LuaProtoplugJuceAudioProcessorEditor::handleCommandMessage (int com)
 {
-    if (com == MSG_POPOUT && ! processor->popout)
+    if (com == MSG_POPOUT && ! luaProcessor->popout)
     {
         popOut();
     }
-    else if (com == MSG_POPOUT && processor->popout)
+    else if (com == MSG_POPOUT && luaProcessor->popout)
     {
         popIn();
     }
     else if (com == MSG_ALWAYSONTOP)
     {
-        processor->alwaysontop = ! processor->alwaysontop;
+        luaProcessor->alwaysontop = ! luaProcessor->alwaysontop;
         if (poppedWin != nullptr)
-            poppedWin->setAlwaysOnTop (processor->alwaysontop);
+            poppedWin->setAlwaysOnTop (luaProcessor->alwaysontop);
     }
 }

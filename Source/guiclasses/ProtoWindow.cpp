@@ -9,7 +9,7 @@
 #endif
 
 
-ApplicationCommandTarget *ProtoCmd::getFirstCommandTarget (CommandID commandID)
+ApplicationCommandTarget *ProtoCmd::getFirstCommandTarget ([[maybe_unused]] CommandID commandID)
 { return pw; }
 
 //==============================================================================
@@ -18,18 +18,18 @@ ProtoWindow::ProtoWindow (Component *parent, LuaProtoplugJuceAudioProcessor* own
     resizer(parent, &resizeLimits),
 	menubar(this),
 	editor(doc, &tok),
+	bottomPane(this),
 	paramPanel(ownerFilter),
 	guiPanel(ownerFilter->luli),
 	activePanel(0),
-	activePanelComponent(0),
+	activePanelComponent(nullptr),
 	paramDock(&paramPanel, "protoplug parameters", ownerFilter),
 	guiDock(&guiPanel, "protoplug GUI", ownerFilter),
-	tab1("code"), tab2("params"), tab3("gui"), 
-	bottomPane(this)
+	tab1("code"), tab2("params"), tab3("gui")
 {
 	dirty = false;
 	vstPanel = parent;
-	popoutWindow = 0;
+	popoutWindow = nullptr;
 	panels[0] = &editor;
 	panels[1] = &paramDock;
 	panels[2] = &guiDock;
@@ -99,7 +99,7 @@ void ProtoWindow::initProtoplugDir()
 	String lastTheme = ProtoplugDir::Instance()->getDir().getChildFile("themes/current theme.txt").loadFileAsString();
 	if (lastTheme.isNotEmpty() && File::isAbsolutePath(lastTheme))
 		readTheme(File(lastTheme));
-	if (processor->lastUIFontSize != -1)
+	if (! juce::exactlyEqual (processor->lastUIFontSize, -1.0f))
 		editor.setFontSize(processor->lastUIFontSize);
 }
 
@@ -107,7 +107,7 @@ void ProtoWindow::readTheme(File f)
 {
 	if (!f.exists())
 		return;
-	editor.setFont(Font(Font::getDefaultMonospacedFontName(), 14, 0));
+	editor.setFont(Font(FontOptions(Font::getDefaultMonospacedFontName(), 14, 0)));
 	auto root = juce::XmlDocument::parse (f);
 	if (!root)
 		return;
@@ -165,8 +165,8 @@ void ProtoWindow::readTheme(File f)
 	}
 	if (typefacePriority!=INT_MAX) { // got a usable font
 		if (hint) typeface += "_hinted_";
-		Font f(typeface, (float)height, style);
-		editor.setFont(f);
+		Font themeFont(FontOptions(typeface, (float)height, style));
+		editor.setFont(themeFont);
 	}
 	editor.setColourScheme(cs);
 	editor.setColour(ScrollBar::thumbColourId, editor.findColour(CodeEditorComponent::backgroundColourId).contrasting(0.25));
@@ -535,15 +535,19 @@ void ProtoWindow::tabButtonClicked (ProtoTabButton *b)
 	if (b==&tab1)
 		setActivePanel(0);
 	else if (b==&tab2)
+	{
 		if (paramDock.isPoppedOut())
 			paramDock.bringWindowToFront();
 		else
 			setActivePanel(1);
+	}
 	else if (b==&tab3)
+	{
 		if (guiDock.isPoppedOut())
 			guiDock.bringWindowToFront();
 		else
 			setActivePanel(2);
+	}
 }
 
 void ProtoWindow::tabButtonDoubleClicked (ProtoTabButton *b)
@@ -565,10 +569,10 @@ void ProtoWindow::tabButtonDoubleClicked (ProtoTabButton *b)
 	}
 }
 
-void ProtoWindow::codeDocumentTextInserted (const String &newText, int insertIndex)
+void ProtoWindow::codeDocumentTextInserted ([[maybe_unused]] const String &newText, [[maybe_unused]] int insertIndex)
 { bottomPane.setCompileVisible(true); }
 
-void ProtoWindow::codeDocumentTextDeleted (int startIndex, int endIndex)
+void ProtoWindow::codeDocumentTextDeleted ([[maybe_unused]] int startIndex, [[maybe_unused]] int endIndex)
 { bottomPane.setCompileVisible(true); }
 
 void ProtoWindow::findNext(bool direction, bool wrap /*= false*/)

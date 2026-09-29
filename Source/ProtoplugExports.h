@@ -4,6 +4,19 @@
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4190) // C function returns C-incompatible UDT.
+#elif defined(__clang__)
+// These headers define protoplug's extern "C" FFI export API: each function
+// here *is* its own declaration (there is no separate prototype elsewhere,
+// since they are never called from other C++ translation units — only from
+// Lua via ffi.cdef), and several intentionally return small C++ structs by
+// value across the "C" linkage boundary, which is safe for the POD types
+// used here despite the ABI-portability warning.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#pragma clang diagnostic ignored "-Wreturn-type-c-linkage"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
 #endif
 
 #include "exports/typedefs.h"
@@ -21,11 +34,65 @@
 #include "exports/pPath.h"
 
 
-PROTO_API     bool AudioPlayHead_getCurrentPosition(pAudioPlayHead self, AudioPlayHead::CurrentPositionInfo& result) 
-{ return self.a->getCurrentPosition(result); }
+PROTO_API     bool AudioPlayHead_getCurrentPosition(pAudioPlayHead self, AudioPlayHead::CurrentPositionInfo& result)
+{
+    // AudioPlayHead::getCurrentPosition() is deprecated in favour of
+    // getPosition(), but the Lua-facing FFI API (see plugin.lua's
+    // CurrentPositionInfo cdef) is built around the legacy struct layout,
+    // so translate getPosition()'s result into it here instead of relying
+    // on JUCE's own (deprecated) conversion helper.
+    const auto pos = self.a->getPosition();
+    if (! pos.hasValue())
+        return false;
+
+    result.resetToDefault();
+
+    if (const auto sig = pos->getTimeSignature())
+    {
+        result.timeSigNumerator   = sig->numerator;
+        result.timeSigDenominator = sig->denominator;
+    }
+
+    if (const auto loop = pos->getLoopPoints())
+    {
+        result.ppqLoopStart = loop->ppqStart;
+        result.ppqLoopEnd   = loop->ppqEnd;
+    }
+
+    if (const auto frame = pos->getFrameRate())
+        result.frameRate = *frame;
+
+    if (const auto timeInSeconds = pos->getTimeInSeconds())
+        result.timeInSeconds = *timeInSeconds;
+
+    if (const auto lastBarStartPpq = pos->getPpqPositionOfLastBarStart())
+        result.ppqPositionOfLastBarStart = *lastBarStartPpq;
+
+    if (const auto ppqPosition = pos->getPpqPosition())
+        result.ppqPosition = *ppqPosition;
+
+    if (const auto originTime = pos->getEditOriginTime())
+        result.editOriginTime = *originTime;
+
+    if (const auto bpm = pos->getBpm())
+        result.bpm = *bpm;
+
+    if (const auto timeInSamples = pos->getTimeInSamples())
+        result.timeInSamples = *timeInSamples;
+
+    result.isPlaying   = pos->getIsPlaying();
+    result.isRecording = pos->getIsRecording();
+    result.isLooping   = pos->getIsLooping();
+
+    return true;
+}
 
 #ifdef _MSC_VER
 #pragma warning(pop)
+#elif defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
 #endif
 
 /*

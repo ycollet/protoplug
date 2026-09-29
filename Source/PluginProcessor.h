@@ -37,7 +37,7 @@ class LuaProtoplugJuceAudioProcessor  : public juce::AudioProcessor,
 {
 public:
     LuaProtoplugJuceAudioProcessor();
-    ~LuaProtoplugJuceAudioProcessor();
+    ~LuaProtoplugJuceAudioProcessor() override;
 
     // AudioProcessor overrides
     void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
@@ -60,8 +60,8 @@ public:
     void releaseResources() override                                                     {}
 
     // Helpers for the GUI (not AudioProcessor overrides)
-    const juce::String getParameterName (int index);
-    const juce::String getParameterText (int index);
+    const juce::String getParameterName (int index) override;
+    const juce::String getParameterText (int index) override;
     bool parameterText2Double (int index, juce::String text, double& d);
 
     // Editor management

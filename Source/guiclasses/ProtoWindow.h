@@ -36,7 +36,7 @@ class ProtoWindow : public juce::Component,
     friend class BottomPane;
 public:
     ProtoWindow (juce::Component* parent, LuaProtoplugJuceAudioProcessor* ownerFilter);
-    ~ProtoWindow();
+    ~ProtoWindow() override;
 
     void paint (juce::Graphics& g) override;
     void resized() override;

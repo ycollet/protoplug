@@ -19,7 +19,7 @@ public:
 	}
 	void mouseWheelMove(const MouseEvent &e,const MouseWheelDetails &wheel)
 	{
-		if (wheel.deltaY != 0 && ModifierKeys::getCurrentModifiers() == ModifierKeys(ModifierKeys::commandModifier))
+		if (! juce::exactlyEqual (wheel.deltaY, 0.0f) && ModifierKeys::getCurrentModifiers() == ModifierKeys(ModifierKeys::commandModifier))
 			setFontSize(getFont().getHeight()+(wheel.deltaY>0?1.f:-1.f));
 		else
 			CodeEditorComponent::mouseWheelMove(e, wheel);
@@ -27,10 +27,12 @@ public:
 	void handleTabKey()
 	{
 		if (isHighlightActive())
+		{
 			if (ModifierKeys::getCurrentModifiers() == ModifierKeys::noModifiers)
 			{ indentSelection(); return; }
 			else if (ModifierKeys::getCurrentModifiers() == ModifierKeys::shiftModifier)
 			{ unindentSelection(); return; }
+		}
 		insertTabAtCaret();
 	}
 	void handleReturnKey()
@@ -68,9 +70,9 @@ public:
 				findNext(searchTerm, direction, true);
 		}
 	}
-	void codeDocumentTextInserted(const String &newText, int insertIndex)
+	void codeDocumentTextInserted([[maybe_unused]] const String &newText, [[maybe_unused]] int insertIndex)
 	{ somethingChanged = true; }
-	void codeDocumentTextDeleted(int startIndex, int endIndex)
+	void codeDocumentTextDeleted([[maybe_unused]] int startIndex, [[maybe_unused]] int endIndex)
 	{ somethingChanged = true; }
 	bool somethingChanged;
 };

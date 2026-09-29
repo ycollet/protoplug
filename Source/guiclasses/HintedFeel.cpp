@@ -9,7 +9,7 @@
 #include <windows.h>
 
 // adapted from Wouter Huysentruit's example
-bool GetFontDataFromSystem(String faceName_in, std::vector<char>& data_out)
+static bool GetFontDataFromSystem(String faceName_in, std::vector<char>& data_out)
 {
 	bool result = false;
 	HDC hdc = CreateCompatibleDC(NULL);
@@ -42,7 +42,7 @@ bool GetFontDataFromSystem(String faceName_in, std::vector<char>& data_out)
 
 #else
 
-bool GetFontDataFromSystem(String faceName_in, std::vector<char>& data_out)
+static bool GetFontDataFromSystem([[maybe_unused]] String faceName_in, [[maybe_unused]] std::vector<char>& data_out)
 {
 	// some day over the
 	return false;
@@ -50,13 +50,13 @@ bool GetFontDataFromSystem(String faceName_in, std::vector<char>& data_out)
 
 #endif
 
-bool GetFontData(const String faceName_in, std::vector<char>& data_out)
+static bool GetFontData(const String faceName_in, std::vector<char>& data_out)
 {
 	for (unsigned int i = 0; i < sizeof (protoFonts) / sizeof (protoFonts[0]); ++i)
 		if (faceName_in==protoFonts[i].name)
 		{
-			data_out.resize(protoFonts[i].size);
-			memcpy(&data_out[0], protoFonts[i].data, protoFonts[i].size);
+			data_out.resize((size_t)protoFonts[i].size);
+			memcpy(&data_out[0], protoFonts[i].data, (size_t)protoFonts[i].size);
 			return true;
 		}
 	return GetFontDataFromSystem(faceName_in, data_out);
@@ -73,15 +73,15 @@ Typeface::Ptr HintedFeel::getTypefaceForFont (Font const& font)
 	{
 		faceName = faceName.dropLastCharacters(8);
 		// add typeface if not yet added
-		if (faces.count(faceName)==0) {
+		if (faces.find(faceName) == faces.end()) {
 			// for now each font is kept once in memory until program exit
 			std::vector<char> *data = new std::vector<char>;
 			faces[faceName] = data;
 			if (GetFontData(faceName, *data))
-				FreeTypeFaces::addFaceFromMemory(9.f, 18.f,true,&((*data)[0]),data->size());
+				FreeTypeFaces::addFaceFromMemory(9.f, 18.f,true,&((*data)[0]),(int)data->size());
 		}
 		// use freetype if font reading hasn't failed
-		if (faces[faceName]->size()>0)
+		if (! faces[faceName]->empty())
 		{
 			Font f (font);
 			f.setTypefaceName (faceName);

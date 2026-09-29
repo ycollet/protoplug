@@ -20,7 +20,7 @@ PROTO_API pAudioFormatReader AudioFormatReader_new(const char *filename)
 		f = File(filename);
 	AudioFormatManager afm;
 	afm.registerBasicFormats();
-	pAudioFormatReader a = {afm.createReaderFor(f)};
+	pAudioFormatReader a = { afm.createReaderFor(f), 0.0, 0u, 0, 0u, false };
 	if (a.a) {
 		a.sampleRate = a.a->sampleRate;
 		a.bitsPerSample = a.a->bitsPerSample;

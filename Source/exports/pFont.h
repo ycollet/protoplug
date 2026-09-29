@@ -17,7 +17,7 @@ PROTO_API pFont Font_new(const char *typefaceName, float fontHeight, int styleFl
 	String stypefaceName = typefaceName;
 	if (hinted)
 		stypefaceName += "_hinted_";
-	pFont f = { new Font(stypefaceName, fontHeight, styleFlags) };
+	pFont f = { new Font(FontOptions(stypefaceName, fontHeight, styleFlags)) };
 	return f;
 }
 

@@ -20,7 +20,7 @@ struct LuaTokeniserFunctions
             { "repeat", "return", "elseif", nullptr};
 
         static const char* const keywords7Char[] =
-            { "require", 0 };
+            { "require", nullptr };
 
         static const char* const keywordsOther[] =
             { "function", "@interface", "@end", "@synthesize", "@dynamic", "@public",
@@ -45,7 +45,7 @@ struct LuaTokeniserFunctions
                 break;
         }
 
-        for (int i = 0; k[i] != 0; ++i)
+        for (int i = 0; k[i] != nullptr; ++i)
             if (token.compare (CharPointer_ASCII (k[i])) == 0)
                 return true;
 

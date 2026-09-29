@@ -1,6 +1,6 @@
 #include "ProtoplugDir.h"
 
-ProtoplugDir* ProtoplugDir::pInstance = 0; 
+ProtoplugDir* ProtoplugDir::pInstance = nullptr; 
 
 // private contructor called once
 ProtoplugDir::ProtoplugDir()
