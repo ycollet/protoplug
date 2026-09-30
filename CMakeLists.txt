@@ -47,6 +47,16 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(LuaJIT REQUIRED IMPORTED_TARGET luajit)
 
 # ============================================================
+# Find FreeType (used only for the "Freetype x.y.z" version string shown
+# in the About box; JUCE's own font engine links the system FreeType on
+# Linux independently of this). Optional: on macOS/Windows, JUCE's font
+# handling doesn't rely on FreeType (CoreText/DirectWrite instead), so
+# freetype2 may not be present there — the About box falls back gracefully
+# (see Source/guiclasses/AboutBox.h).
+# ============================================================
+pkg_check_modules(Freetype2 QUIET IMPORTED_TARGET freetype2)
+
+# ============================================================
 # Fetch JUCE via FetchContent
 # ============================================================
 include(FetchContent)
@@ -119,17 +129,10 @@ set(PROTOPLUG_SOURCES
     Source/vflib/BinaryDejaVu.h
     Source/vflib/BinarySourceCodePro.cpp
     Source/vflib/BinarySourceCodePro.h
-    Source/vflib/FreeTypeAmalgam.c
-    Source/vflib/FreeTypeAmalgam.h
     Source/vflib/vf_FreeTypeFaces.cpp
     Source/vflib/vf_FreeTypeFaces.h
 )
 
-# FreeTypeAmalgam.c is plain C — compile it as C, not as C++.
-set_source_files_properties(
-    ${CMAKE_CURRENT_SOURCE_DIR}/Source/vflib/FreeTypeAmalgam.c
-    PROPERTIES LANGUAGE C
-)
 
 # ============================================================
 # Helper function — applies common settings to both plugins
@@ -171,6 +174,15 @@ function(configure_protoplug_plugin target is_synth)
 
     # LuaJIT — found by pkg_check_modules(LuaJIT ...) above.
     target_link_libraries(${target} PRIVATE PkgConfig::LuaJIT)
+
+    # Real system FreeType — used only for the "Freetype x.y.z" string in
+    # the About box (see AboutBox.h). Not present on all platforms (JUCE's
+    # own font engine doesn't need it outside Linux), so link it only when
+    # pkg-config found it above.
+    if(TARGET PkgConfig::Freetype2)
+        target_link_libraries(${target} PRIVATE PkgConfig::Freetype2)
+        target_compile_definitions(${target} PRIVATE PROTOPLUG_HAS_FREETYPE=1)
+    endif()
 
     # juce_audio_utils transitively pulls in juce_audio_basics,
     # juce_audio_devices, juce_audio_formats, juce_audio_processors,

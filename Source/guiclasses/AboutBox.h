@@ -4,7 +4,11 @@
 #include <JuceHeader.h>
 #include "../LuaState.h"
 #include "../PluginProcessor.h"
-#include "../vflib/FreeTypeAmalgam.h"
+
+#if defined(PROTOPLUG_HAS_FREETYPE)
+ #include <ft2build.h>
+ #include FT_FREETYPE_H
+#endif
 
 class AboutBox
 {
@@ -54,7 +58,11 @@ public:
 			<< "Version info:" << newLine
 			<< "JUCE " << JUCE_MAJOR_VERSION << "." << JUCE_MINOR_VERSION << "." << JUCE_BUILDNUMBER << newLine
 			<< (ls.failed ? "LuaJIT not found" : ls.tostring(-1)) << newLine
+#if defined(PROTOPLUG_HAS_FREETYPE)
 			<< "Freetype " << FREETYPE_MAJOR << "." << FREETYPE_MINOR << "." << FREETYPE_PATCH;
+#else
+			<< "Freetype: n/a";
+#endif
 		TextEditor *aboutBox = new TextEditor();
 		aboutBox->setColour(TextEditor::backgroundColourId, colours->findColour(CodeEditorComponent::backgroundColourId));
 		aboutBox->setColour(TextEditor::textColourId, colours->findColour(CodeEditorComponent::defaultTextColourId));
