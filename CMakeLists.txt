@@ -203,7 +203,7 @@ juce_add_plugin(protoplug_fx
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     BUNDLE_ID                   "com.pac.protoplugfx"
     VST3_CATEGORIES             "Fx"
-    LV2_URI                     "https://osar.fr/protoplug/fx"
+    LV2URI                      "https://osar.fr/protoplug/fx"
 )
 
 target_sources(protoplug_fx PRIVATE ${PROTOPLUG_SOURCES})
@@ -232,7 +232,7 @@ juce_add_plugin(protoplug_gen
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     BUNDLE_ID                   "com.pac.protopluggen"
     VST3_CATEGORIES             "Instrument|Synth"
-    LV2_URI                     "https://osar.fr/protoplug/gen"
+    LV2URI                      "https://osar.fr/protoplug/gen"
 )
 
 target_sources(protoplug_gen PRIVATE ${PROTOPLUG_SOURCES})
