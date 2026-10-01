@@ -21,6 +21,9 @@ public:
     LuaProtoplugJuceAudioProcessor* luaProcessor;
 
 private:
+    static constexpr int minimumEditorWidth = 419;
+    static constexpr int minimumEditorHeight = 100;
+
     ProtoWindow content; // the actual gui is in there
     std::unique_ptr<ProtoPopout> poppedWin;
     juce::TextButton yank;

@@ -25,6 +25,7 @@ LuaProtoplugJuceAudioProcessorEditor::LuaProtoplugJuceAudioProcessorEditor (LuaP
       locateFiles ("locate directory...")
 {
     luaProcessor = ownerFilter;
+    getConstrainer()->setMinimumSize (minimumEditorWidth, minimumEditorHeight);
     ownerFilter->setProtoEditor (&content);
     addChildComponent (&yank);
     addChildComponent (&popin);
@@ -54,6 +55,7 @@ LuaProtoplugJuceAudioProcessorEditor::LuaProtoplugJuceAudioProcessorEditor (LuaP
     {
         content.initProtoplugDir();
         addAndMakeVisible (&content);
+        setResizable (true, true);
         content.takeFocus();
         setSize (ownerFilter->lastUIWidth, ownerFilter->lastUIHeight);
     }
@@ -97,7 +99,7 @@ void LuaProtoplugJuceAudioProcessorEditor::paint (juce::Graphics& g)
 
 void LuaProtoplugJuceAudioProcessorEditor::resized()
 {
-    if (! poppedWin)
+    if (content.getParentComponent() == this)
         content.setBounds (0, 0, getWidth(), getHeight());
 }
 
@@ -125,10 +127,11 @@ void LuaProtoplugJuceAudioProcessorEditor::buttonClicked (juce::Button* b)
                 ProtoplugDir::Instance()->setDir (chosen);
                 if (ProtoplugDir::Instance()->getDirTextFile().create().wasOk())
                     ProtoplugDir::Instance()->getDirTextFile().replaceWithText (chosen.getFullPathName());
-                setSize (670, 455);
                 luaProcessor->luli->initProtoplugDir();
                 locateFiles.setVisible (false);
                 addAndMakeVisible (&content);
+                setResizable (true, true);
+                setSize (luaProcessor->lastUIWidth, luaProcessor->lastUIHeight);
                 content.takeFocus();
                 content.initProtoplugDir();
             }
@@ -148,13 +151,14 @@ void LuaProtoplugJuceAudioProcessorEditor::popOut()
                                                juce::DocumentWindow::allButtons, true);
     poppedWin->setAlwaysOnTop (luaProcessor->alwaysontop);
     poppedWin->setResizable (true, false);
+    poppedWin->getConstrainer()->setMinimumSize (minimumEditorWidth, minimumEditorHeight);
     poppedWin->setUsingNativeTitleBar (true);
     poppedWin->setContentNonOwned (&content, true);
     luaProcessor->popout = true;
     poppedWin->setContentComponentSize (luaProcessor->lastUIWidth, luaProcessor->lastUIHeight);
     poppedWin->setTopLeftPosition (luaProcessor->lastPopoutX, luaProcessor->lastPopoutY);
-    content.setPoppedOut (true);
     poppedWin->setVisible (true);
+    setResizable (false, false);
     setSize (280, 130);
     yank.setVisible (true);
     content.takeFocus();
@@ -163,8 +167,6 @@ void LuaProtoplugJuceAudioProcessorEditor::popOut()
 
 void LuaProtoplugJuceAudioProcessorEditor::popIn()
 {
-    luaProcessor->lastUIWidth  = 670;
-    luaProcessor->lastUIHeight = 455;
     if (poppedWin != nullptr)
     {
         luaProcessor->lastPopoutX = poppedWin->getX();
@@ -172,11 +174,13 @@ void LuaProtoplugJuceAudioProcessorEditor::popIn()
     }
     luaProcessor->popout = false;
     int w = luaProcessor->lastUIWidth, h = luaProcessor->lastUIHeight;
+    if (poppedWin != nullptr)
+        poppedWin->clearContentComponent();
+    poppedWin.reset();
     addAndMakeVisible (&content);
-    content.setPoppedOut (false);
+    setResizable (true, true);
     setSize (w, h);
     content.setSize (w, h);
-    poppedWin.reset();
     yank.setVisible (false);
     content.takeFocus();
     popin.setVisible (false);

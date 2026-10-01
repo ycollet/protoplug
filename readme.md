@@ -14,6 +14,11 @@ Protoplug is a VST/AU plugin that lets you load and edit Lua scripts as audio ef
 
 **Free and open source :** The source is MIT-licensed. Hack away.
 
+**Resizable editor :** drag the bottom-right corner to enlarge the editor, or use
+the host's resize controls when supported. The size is remembered when reopening
+the editor for the same plugin instance and when popping it out and back in.
+The popped-out window can also be resized using its window border.
+
 
 Compiling from Source
 ---------------------
@@ -47,3 +52,8 @@ By default, protoplug builds VST3 and AU (macOS only). Additional formats can be
 	cmake -B build -DPLUGIN_USE_CLAP=ON   # build the CLAP format
 
 Built plugins are placed under `build/protoplug_fx_artefacts` and `build/protoplug_gen_artefacts` (one subfolder per format). Copy the binaries to your system's plugin folder, or run the platform's standard CMake install step if you prefer.
+
+On Linux, popup positioning is handled by the current JUCE version. The old
+periodic window-resize workaround has been removed because it could dismiss open
+menus. If using an older build with menus that close on their own, rebuild and
+replace the installed plugin, then restart the host.

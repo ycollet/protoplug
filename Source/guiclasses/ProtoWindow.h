@@ -57,7 +57,6 @@ public:
     void saveCode();
     void compile();
     void setActivePanel (int p);
-    void setPoppedOut (bool popped);
     void takeFocus();
     void readPrefs();
     void readTheme (juce::File theme);
@@ -99,8 +98,6 @@ private:
     HintedFeel newFeel;
     ProtoCmd commMgr;
     LuaProtoplugJuceAudioProcessor* processor;
-    juce::ResizableCornerComponent resizer;
-    juce::ComponentBoundsConstrainer resizeLimits;
     juce::StretchableLayoutManager horizontalLayout;
     std::unique_ptr<DarkSplitter> horizontalDividerBar;
     juce::MenuBarComponent menubar;
@@ -120,5 +117,4 @@ private:
     Dockable paramDock, guiDock;
     juce::String searchTerm;
     ProtoTabButton tab1, tab2, tab3;
-    int hackTimer;
 };

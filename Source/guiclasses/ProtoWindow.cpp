@@ -15,7 +15,6 @@ ApplicationCommandTarget *ProtoCmd::getFirstCommandTarget ([[maybe_unused]] Comm
 //==============================================================================
 ProtoWindow::ProtoWindow (Component *parent, LuaProtoplugJuceAudioProcessor* ownerFilter)
 	: commMgr(this),
-    resizer(parent, &resizeLimits),
 	menubar(this),
 	editor(doc, &tok),
 	bottomPane(this),
@@ -38,10 +37,6 @@ ProtoWindow::ProtoWindow (Component *parent, LuaProtoplugJuceAudioProcessor* own
     LookAndFeel::setDefaultLookAndFeel (&newFeel);
     addAndMakeVisible (&menubar);
     menubar.setEnabled (true);
-
-	resizeLimits.setMinimumHeight(100);
-	resizeLimits.setMinimumWidth(419);
-    addAndMakeVisible (&resizer);
 
 	// panel 1 : editor
 	// (moved to init folder)
@@ -78,7 +73,6 @@ ProtoWindow::ProtoWindow (Component *parent, LuaProtoplugJuceAudioProcessor* own
 
 	msg_UpdateLog = 1;
 	msg_ParamsChanged = msg_TakeFocus = 0;
-	hackTimer = 0;
     startTimer (50);
 	addKeyListener(commMgr.getKeyMappings());
 	
@@ -209,9 +203,8 @@ void ProtoWindow::resized()
                                         true,      // lay out on top of each other
                                         true);     // resize the components' widths as well as heights
 
-    resizer.setBounds (getWidth() - 16, getHeight() - 16, 16, 16);
     menubar.setBounds (0, 0, getWidth(), menuHeight);
-	bottomPane.setBounds(0, bottomPane.getY(), getWidth()-16, bottomPane.getHeight());
+	bottomPane.setBounds(0, bottomPane.getY(), getWidth()-18, bottomPane.getHeight());
 
     processor->lastUIWidth = getWidth();
     processor->lastUIHeight = getHeight();
@@ -611,14 +604,6 @@ void ProtoWindow::setActivePanel(int p)
 	processor->lastUIPanel = activePanel;
 }
 
-void ProtoWindow::setPoppedOut(bool popped)
-{
-	if (popped)
-		resizer.setVisible(false);
-	else
-		resizer.setVisible(true);
-}
-
 void ProtoWindow::timerCallback()
 {
 	if (msg_UpdateLog) {
@@ -638,20 +623,6 @@ void ProtoWindow::timerCallback()
 		editor.somethingChanged = false;
 		compile();
 	}
-	// pestilentially ugly hack to fix the misplaced menu popups.
-	// the problem appeared between Jan and Sept '14 versions of JUCE
-	#if JUCE_LINUX
-	if (hackTimer++>10)
-	{
-		hackTimer = 0;
-		Component *pc = processor->getProtoEditor()->getParentComponent();
-		if (pc) {
-			Rectangle<int> pcrect = pc->getBounds();
-			pc->setBounds(pcrect.withWidth(pcrect.getWidth()+1));
-			pc->setBounds(pcrect);
-		}
-	}
-	#endif
 }
 
 void ProtoWindow::takeFocus()
